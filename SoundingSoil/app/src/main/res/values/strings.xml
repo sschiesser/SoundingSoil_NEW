@@ -1,0 +1,105 @@
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~ All rights reserved.
+  ~
+  ~ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+  ~
+  ~ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+  ~
+  ~ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
+  ~ documentation and/or other materials provided with the distribution.
+  ~
+  ~ 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this
+  ~ software without specific prior written permission.
+  ~
+  ~ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  ~ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  ~ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  ~ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  ~ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  ~ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<resources>
+    <string name="app_name">Sounding Soil</string>
+    <string name="feature_name">BLINKY</string>
+
+    <string name="title">@string/app_name</string>
+
+    <string name="menu_filter">Filter</string>
+    <string name="menu_filter_uuid">Only recorder devices</string>
+    <string name="menu_filter_nearby">Only nearby devices</string>
+
+    <string name="unknown_device">Unknown Device</string>
+    <string name="turn_on">On</string>
+    <string name="turn_off">Off</string>
+    <string name="title_led_state">LED</string>
+    <string name="title_button_state">Button</string>
+    <string name="state">State</string>
+    <string name="button_pressed">PRESSED</string>
+    <string name="button_released">RELEASED</string>
+    <string name="button_unknown">UNKNOWN</string>
+    <string name="led_summary">Toggle the switch to turn the LED 3 on or off.</string>
+
+    <string name="location_permission_title">LOCATION PERMISSION REQUIRED</string>
+    <string name="location_permission_info">From Android 6.0 Marshmallow onwards the application requires Location permission in order to scan for Bluetooth Low Energy devices.
+      \n\nThis is because Bluetooth LE may be used to determine the phone\'s and user\'s location. <b>Sounding Soil</b> will not use this information in any way.</string>
+    <string name="location_permission_audio_title">RECORD AUDIO PERMISSION REQUIRED</string>
+    <string name="location_permission_audio_info">The application requires permission to access the microphone in order to monitor the audio recordings.</string>
+    <string name="location_permission_action">Grant permission</string>
+    <string name="location_permission_settings">Settings</string>
+
+    <string name="bluetooth_disabled_title">BLUETOOTH DISABLED</string>
+    <string name="bluetooth_disabled_info">The Bluetooth adapter is turned off. Click the button below to enable it.</string>
+    <string name="bluetooth_disabled_action">Enable</string>
+
+    <string name="blinky_guide_title">CAN\'T SEE YOUR RECORDER?</string>
+    <string name="blinky_guide_info">Make sure the recorder is <b>turned on</b> and push the Bluetooth button.</string>
+    <string name="blinky_guide_location_info">3. Location is turned off. Android phones require it enabled in order to scan for Bluetooth LE devices.
+		If you are sure your Recoder is advertising and it doesn\'t show up here, click the button below to enable Location.</string>
+    <string name="blinky_guide_location_action">Enable</string>
+
+    <string name="not_supported_title">DEVICE NOT SUPPORTED</string>
+    <string name="not_supported_info">1. The recorder service hasn\'t been found on the device.
+		\n\n2. Make sure the recorder is flashed with the correct firmware.</string>
+    <string name="not_supported_action">Fix and try again</string>
+
+    <string name="state_scanning">Scanning…</string>
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_discovering_services">Discovering services…</string>
+    <string name="state_initializing">Initializing…</string>
+    <string name="state_disconnected">Device disconnected.</string>
+    <string name="title_mon">Mon</string>
+
+    <string name="status_request">status &#10; request</string>
+    <string name="clear">clear</string>
+
+    <string name="duration_title">Duration (s)</string>
+    <string name="period_title">Period (s)</string>
+    <string name="occurence_title">Occurence (s)</string>
+
+    <string name="rec_state_off">Recording stopped</string>
+    <string name="rec_state_wait">Rec waiting...</string>
+    <string name="rec_state_on">Recording...</string>
+    <string name="rec_state_unknown">Unknown</string>
+
+    <string name="mon_state_off">Monitor off</string>
+    <string name="mon_state_on">Monitor on</string>
+
+    <string name="vol_up">Vol up</string>
+    <string name="vol_down">Vol down</string>
+
+    <string name="scanner_title">Select device:</string>
+    <string name="scanner_empty">No device found</string>
+    <string name="scanner_action_scan">Scan</string>
+    <string name="scanner_action_cancel">Cancel</string>
+    <string name="scanner_subtitle_bonded">BONDED DEVICES:</string>
+    <string name="scanner_subtitle_not_bonded">AVAILABLE DEVICES:</string>
+    <string name="scanner_permission_rationale">Since Android 6.0 Marshmallow system requires granting access to device\'s location in order to scan for Bluetooth Smart devices. Bluetooth beacons may be used to determine the phone\'s and user\'s location.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="not_available">n/a</string>
+
+
+</resources>

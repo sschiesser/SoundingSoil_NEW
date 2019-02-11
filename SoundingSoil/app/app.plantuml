@@ -1,0 +1,229 @@
+@startuml
+
+title __APP's Class Diagram__\n
+
+  package no.nordicsemi.android.blinky {
+    class BlinkyActivity {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    class BlinkyActivity_ViewBinding {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      package no.nordicsemi.android.blinky.profile.callback {
+        interface BlinkyButtonCallback {
+        }
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      package no.nordicsemi.android.blinky.profile.callback {
+        abstract class BlinkyButtonDataCallback {
+        }
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      package no.nordicsemi.android.blinky.profile.data {
+        class BlinkyLED {
+        }
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      package no.nordicsemi.android.blinky.profile.callback {
+        interface BlinkyLedCallback {
+        }
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      package no.nordicsemi.android.blinky.profile.callback {
+        abstract class BlinkyLedDataCallback {
+        }
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      class BlinkyManager {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.profile {
+      interface BlinkyManagerCallbacks {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.viewmodels {
+      class BlinkyViewModel {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    class BuildConfig {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.adapter {
+      class DeviceDiffCallback {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.adapter {
+      class DevicesAdapter {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.adapter {
+      class DevicesAdapter$ViewHolder_ViewBinding {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.viewmodels {
+      class DevicesLiveData {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.adapter {
+      class DiscoveredBluetoothDevice {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    class ScannerActivity {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    class ScannerActivity_ViewBinding {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.viewmodels {
+      class ScannerStateLiveData {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.viewmodels {
+      class ScannerViewModel {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.viewmodels {
+      class SingleLiveEvent {
+      }
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    class SplashScreenActivity {
+    }
+  }
+  
+
+  package no.nordicsemi.android.blinky {
+    package no.nordicsemi.android.blinky.utils {
+      class Utils {
+      }
+    }
+  }
+  
+
+  BlinkyActivity -up-|> AppCompatActivity
+  BlinkyActivity o-- BlinkyViewModel : mViewModel
+  BlinkyActivity_ViewBinding -up-|> Unbinder
+  BlinkyActivity_ViewBinding o-- BlinkyActivity : target
+  BlinkyButtonDataCallback -up-|> ProfileDataCallback
+  BlinkyButtonDataCallback -up-|> BlinkyButtonCallback
+  BlinkyLedDataCallback -up-|> ProfileDataCallback
+  BlinkyLedDataCallback -up-|> DataSentCallback
+  BlinkyLedDataCallback -up-|> BlinkyLedCallback
+  BlinkyManager -up-|> BleManager
+  BlinkyManager o-- BlinkyButtonDataCallback : mButtonCallback
+  BlinkyManager o-- BlinkyLedDataCallback : mLedCallback
+  BlinkyViewModel -up-|> BlinkyManagerCallbacks
+  BlinkyViewModel -up-|> AndroidViewModel
+  BlinkyViewModel o-- BlinkyManager : mBlinkyManager
+  DeviceDiffCallback -up-|> Callback
+  DevicesAdapter -up-|> Adapter
+  DevicesAdapter o-- OnItemClickListener : mOnItemClickListener
+  DevicesAdapter$ViewHolder_ViewBinding -up-|> Unbinder
+  DevicesAdapter$ViewHolder_ViewBinding o-- ViewHolder : target
+  DevicesLiveData -up-|> LiveData
+  DiscoveredBluetoothDevice -up-|> Parcelable
+  ScannerActivity -up-|> OnItemClickListener
+  ScannerActivity -up-|> AppCompatActivity
+  ScannerActivity o-- ScannerViewModel : mScannerViewModel
+  ScannerActivity_ViewBinding -up-|> Unbinder
+  ScannerActivity_ViewBinding o-- ScannerActivity : target
+  ScannerStateLiveData -up-|> LiveData
+  ScannerViewModel -up-|> AndroidViewModel
+  ScannerViewModel o-- DevicesLiveData : mDevicesLiveData
+  ScannerViewModel o-- ScannerStateLiveData : mScannerStateLiveData
+  SingleLiveEvent -up-|> MutableLiveData
+  SplashScreenActivity -up-|> Activity
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

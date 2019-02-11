@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~ All rights reserved.
+  ~
+  ~ Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+  ~
+  ~ 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+  ~
+  ~ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
+  ~ documentation and/or other materials provided with the distribution.
+  ~
+  ~ 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this
+  ~ software without specific prior written permission.
+  ~
+  ~ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  ~ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  ~ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  ~ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  ~ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+  ~ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools">
+
+	<data>
+		<variable
+			name="viewmodel"
+			type="ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel"
+		/>
+	</data>
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		tools:context="ch.kentai.android.soundingsoil.BlinkyActivity">
+
+
+		<com.google.android.material.appbar.AppBarLayout
+			android:id="@+id/appbar_layout"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:theme="@style/AppTheme.AppBarOverlay"
+			app:layout_constraintTop_toTopOf="parent">
+
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:orientation="horizontal">
+
+				<androidx.appcompat.widget.Toolbar
+					android:id="@+id/toolbar"
+					android:layout_width="0dp"
+					android:layout_weight="1"
+					android:layout_height="wrap_content"
+					android:background="?attr/colorPrimary"
+					app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+				<ImageView
+					android:id="@+id/connectedIV"
+					android:layout_width="30dp"
+					android:layout_height="match_parent"
+					android:layout_margin="8dp"
+					android:contentDescription="@null"
+					app:srcCompat="@drawable/icons8_connected_48" />
+			</LinearLayout>
+
+		</com.google.android.material.appbar.AppBarLayout>
+
+		<LinearLayout
+			android:id="@+id/device_container"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@+id/appbar_layout"
+			android:visibility="gone"
+			android:orientation="vertical"
+			app:layout_constraintTop_toBottomOf="parent"
+			tools:visibility="visible">
+
+
+			<LinearLayout
+				android:id="@+id/comm_log"
+				android:layout_width="match_parent"
+				android:layout_height="88dp"
+				android:orientation="horizontal">
+
+                <ScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/data_sent_received"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="" />
+                </ScrollView>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+					<Button
+						android:id="@+id/status_req_button"
+						android:layout_width="80dp"
+						android:layout_height="48dp"
+						android:padding="2dp"
+						android:text="@string/status_request"
+						android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/clear_mon_button"
+                        android:layout_width="80dp"
+                        android:layout_height="45dp"
+                        android:text="@string/clear"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+			</LinearLayout>
+
+				<androidx.cardview.widget.CardView
+					android:id="@+id/button_card"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="@dimen/activity_horizontal_margin"
+					android:layout_marginBottom="@dimen/activity_horizontal_margin"
+					android:background="@android:color/white"
+					app:cardElevation="1dp">
+
+					<androidx.constraintlayout.widget.ConstraintLayout
+						android:id="@+id/button_container"
+						android:layout_width="match_parent"
+						android:layout_height="match_parent"
+						android:minHeight="210dp">
+
+						<TextView
+							android:id="@+id/duration_title"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="8dp"
+							android:text="@string/duration_title"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<EditText
+							android:id="@+id/duration_text"
+							android:layout_width="146dp"
+							android:layout_height="44dp"
+							android:layout_marginStart="8dp"
+							android:layout_marginTop="8dp"
+							android:ems="10"
+							android:hint="Duration"
+							android:importantForAutofill="no"
+							android:inputType="number"
+							android:text="@{viewmodel.duration}"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<TextView
+							android:id="@+id/period_title"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/period_title"
+							app:layout_constraintStart_toEndOf="@+id/duration_text"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<EditText
+							android:id="@+id/period_text"
+							android:layout_width="146dp"
+							android:layout_height="44dp"
+							android:layout_marginTop="8dp"
+							android:ems="10"
+							android:inputType="number"
+							android:text="@{viewmodel.period}"
+							app:layout_constraintStart_toEndOf="@+id/duration_text"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<TextView
+							android:id="@+id/occurence_title"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/occurence_title"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintStart_toEndOf="@+id/occurence_text"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<EditText
+							android:id="@+id/occurence_text"
+							android:layout_width="146dp"
+							android:layout_height="44dp"
+							android:layout_marginTop="8dp"
+							android:ems="10"
+							android:inputType="number"
+							android:text="@{viewmodel.occurence}"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintStart_toEndOf="@+id/period_text"
+							app:layout_constraintTop_toTopOf="parent" />
+
+						<ImageButton
+							android:id="@+id/rec_button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="8dp"
+							android:layout_marginTop="8dp"
+							android:contentDescription="@null"
+							android:src="@drawable/icons8_record_96"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintTop_toBottomOf="@+id/duration_text" />
+
+						<TextView
+							android:id="@+id/mon_state"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="16dp"
+							android:padding="@dimen/activity_horizontal_margin"
+							android:text="@string/button_unknown"
+							android:textAlignment="center"
+							android:textStyle="bold"
+							app:layout_constraintStart_toEndOf="@+id/rec_button"
+							app:layout_constraintTop_toBottomOf="@+id/mon_button" />
+
+						<TextView
+							android:id="@+id/rec_state"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="8dp"
+							android:padding="@dimen/activity_horizontal_margin"
+							android:text="@string/button_unknown"
+							android:textAlignment="viewStart"
+							android:textStyle="bold"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintTop_toBottomOf="@+id/rec_button" />
+
+						<TextView
+							android:id="@+id/file_path"
+							android:layout_width="210dp"
+							android:layout_height="wrap_content"
+							android:padding="@dimen/activity_horizontal_margin"
+							android:text="@{viewmodel.filepath}"
+							android:textAlignment="viewStart"
+							android:textSize="10sp"
+							android:textStyle="bold"
+							app:layout_constraintBottom_toBottomOf="parent"
+							app:layout_constraintStart_toStartOf="parent"
+							app:layout_constraintTop_toBottomOf="@+id/rec_state" />
+
+						<ImageButton
+							android:id="@+id/vol_up_button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="16dp"
+							android:layout_marginTop="8dp"
+							android:layout_marginEnd="8dp"
+							android:contentDescription="@null"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintStart_toEndOf="@+id/mon_button"
+							app:layout_constraintTop_toBottomOf="@+id/occurence_text"
+							app:srcCompat="@drawable/icons8_speaker_filled_50" />
+
+						<ImageButton
+							android:id="@+id/vol_down_button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="16dp"
+							android:layout_marginEnd="8dp"
+							android:contentDescription="@null"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintStart_toEndOf="@+id/mon_button"
+							app:layout_constraintTop_toBottomOf="@+id/vol_up_button"
+							app:srcCompat="@drawable/icons8_low_volume_filled_50" />
+
+						<ProgressBar
+							android:id="@+id/pb"
+							style="@android:style/Widget.ProgressBar.Horizontal"
+							android:layout_width="47dp"
+							android:layout_height="0dp"
+							android:progressDrawable="@drawable/progressbar_states"
+							app:layout_constraintBottom_toBottomOf="@+id/vol_down_button"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintStart_toEndOf="@+id/vol_down_button"
+							app:layout_constraintTop_toTopOf="@+id/vol_up_button" />
+
+                        <TextView
+                            android:id="@+id/vol_text"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:padding="@dimen/activity_horizontal_margin"
+                            android:text="@{viewmodel.volume}"
+                            android:textAlignment="viewStart"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/vol_down_button" />
+
+						<TextView
+							android:id="@+id/state_label"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginEnd="8dp"
+							android:padding="@dimen/activity_horizontal_margin"
+							android:text="@string/state"
+							app:layout_constraintEnd_toStartOf="@+id/rec_state"
+							app:layout_constraintTop_toTopOf="@+id/rec_state" />
+
+						<ImageButton
+							android:id="@+id/mon_button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:layout_marginStart="8dp"
+							android:layout_marginTop="8dp"
+							android:contentDescription="@null"
+							android:src="@drawable/icons8_play_96"
+							app:layout_constraintStart_toEndOf="@+id/rec_button"
+							app:layout_constraintTop_toBottomOf="@+id/period_text" />
+
+						<TextView
+							android:id="@+id/connex_state"
+							android:layout_width="89dp"
+							android:layout_height="27dp"
+							android:text="@{viewmodel.BTStateChanged}"
+							android:textStyle="bold"
+							app:layout_constraintBottom_toBottomOf="@+id/conn_button"
+							app:layout_constraintEnd_toStartOf="@+id/conn_button"
+							app:layout_constraintStart_toEndOf="@+id/file_path"
+							app:layout_constraintTop_toBottomOf="@+id/mon_state" />
+
+						<Button
+							android:id="@+id/conn_button"
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="Conn"
+							app:layout_constraintEnd_toEndOf="parent"
+							app:layout_constraintTop_toBottomOf="@+id/vol_text" />
+
+					</androidx.constraintlayout.widget.ConstraintLayout>
+				</androidx.cardview.widget.CardView>
+
+			<com.tyorikan.voicerecordingvisualizer.VisualizerView
+				android:id="@+id/visualizer"
+				android:layout_width="match_parent"
+				android:layout_height="100dp"
+				android:background="@android:color/black"
+				app:numColumns="100"
+				app:renderColor="@color/white"
+				app:renderRange="both"
+				app:renderType="pixel"/>
+
+
+		</LinearLayout>
+
+		<LinearLayout
+			android:id="@+id/progress_container"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:layout_marginTop="32dp"
+			android:gravity="center_horizontal"
+			android:orientation="vertical"
+			android:padding="@dimen/activity_horizontal_margin"
+			android:visibility="invisible"
+			app:layout_constraintHeight_percent="50"
+			app:layout_constraintTop_toTopOf="parent"
+			tools:visibility="visible">
+
+			<TextView
+				android:id="@+id/connection_state"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
+				android:textSize="16sp"
+				android:visibility="invisible"
+				tools:text="@string/state_connecting" />
+
+			<ProgressBar
+				android:id="@+id/progress_bar"
+				style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+				android:layout_width="250dp"
+				android:layout_height="wrap_content"
+				android:indeterminate="true"
+				android:visibility="invisible" />
+		</LinearLayout>
+
+		<include
+			android:id="@+id/not_supported"
+			layout="@layout/info_not_supported"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="4dp"
+			android:layout_marginTop="4dp"
+			android:layout_marginEnd="4dp"
+			android:layout_marginBottom="4dp"
+			android:visibility="invisible"
+			tools:visibility="visible" />
+
+	</RelativeLayout>
+
+</layout>
