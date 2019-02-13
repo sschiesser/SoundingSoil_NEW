@@ -144,12 +144,20 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
 				mCallbacks.onBTStateChanged(scanner.next());
 			} else if (str.startsWith("VOL") || str.startsWith("ERR")) {
 				mCallbacks.onVolumeChanged(device, str);
-			} else if (str.startsWith("001")) {
+			} else if (str.startsWith("INQ")) {
+            	if (str.equalsIgnoreCase("INQ START")) {
+					mCallbacks.onInqStateChanged(true);
+
+				} else if (str.equalsIgnoreCase("INQ STOP")) {
+					mCallbacks.onInqStateChanged(false);
+				} else {
 				Scanner scanner = new Scanner(str);
+				scanner.next();
 				SimpleBluetoothDevice dev = new SimpleBluetoothDevice();
 				dev.name = scanner.next();
 				dev.rssi = scanner.next();
 				mCallbacks.onDeviceDiscovered(dev);
+            	}
             }
 		}
 
@@ -164,6 +172,7 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
             setNotificationCallback(mCustomCharacteristic).with(mDataCallback);
 			readCharacteristic(mCustomCharacteristic).with(mDataCallback).enqueue();
             enableNotifications(mCustomCharacteristic).enqueue();
+			requestMtu(43).enqueue();
 		}
 
 		@Override

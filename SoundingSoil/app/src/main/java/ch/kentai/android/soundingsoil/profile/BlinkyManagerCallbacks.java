@@ -52,6 +52,8 @@ public interface BlinkyManagerCallbacks extends BleManagerCallbacks {
 
     void onDeviceDiscovered(@NonNull final SimpleBluetoothDevice device);
 
+    void onInqStateChanged(@NonNull final boolean state);
+
     void onBTStateChanged(@NonNull final String string);
 
 }

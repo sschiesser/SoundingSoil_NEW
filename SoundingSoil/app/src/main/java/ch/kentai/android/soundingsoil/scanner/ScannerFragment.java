@@ -108,13 +108,13 @@ public class ScannerFragment extends DialogFragment {
         }
 
         mViewModel = ViewModelProviders.of(getActivity()).get(BlinkyViewModel.class);
+
         mViewModel.getDeviceDiscovered().observe(this, device -> {
             if (device != null) {
                 mAdapter.update(device);
             }
             //Log.i("info", "updateAdapter" + text);
         });
-
 
     }
 
@@ -190,9 +190,18 @@ public class ScannerFragment extends DialogFragment {
             }
         });
 
+        mViewModel.getInqState().observe(this, state -> {
+            if(!state) dialog.cancel();
+        });
+
+
+
+        mAdapter.clearDevices();
+
         //addBoundDevices();
         return dialog;
     }
+
 
 
     // receive a2dp bluetooth devices scan results and update the adapter
