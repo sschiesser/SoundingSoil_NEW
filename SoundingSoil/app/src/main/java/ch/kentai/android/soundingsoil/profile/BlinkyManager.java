@@ -148,13 +148,13 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
             	if (str.equalsIgnoreCase("INQ START")) {
 					mCallbacks.onInqStateChanged(true);
 
-				} else if (str.equalsIgnoreCase("INQ STOP")) {
+				} else if (str.equalsIgnoreCase("INQ DONE")) {
 					mCallbacks.onInqStateChanged(false);
 				} else {
 				Scanner scanner = new Scanner(str);
 				scanner.next();
 				SimpleBluetoothDevice dev = new SimpleBluetoothDevice();
-				dev.name = scanner.next();
+				dev.name = scanner.next();		// test if scanner has next. test if number
 				dev.rssi = scanner.next();
 				mCallbacks.onDeviceDiscovered(dev);
             	}

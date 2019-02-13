@@ -242,12 +242,12 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 			mBlinkyManager.send("time " + unixTime);
 			mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 			mBlinkyManager.send("rec start");
-			mRec2State.setValue(2);
+			//mRec2State.setValue(2);	// setvalue 3? == rec preparing
 			Log.i("time", getDateCurrentTimeZone(unixTime));
 		}
 		else {
 			mBlinkyManager.send("rec stop");
-			mRec2State.setValue(0);
+			//mRec2State.setValue(0);
 		}
 
 	}
