@@ -191,7 +191,7 @@ public class ScannerFragment extends DialogFragment {
         });
 
         mViewModel.getInqState().observe(this, state -> {
-            if(!state) dialog.cancel();
+           // if(!state) dialog.cancel();
         });
 
 
