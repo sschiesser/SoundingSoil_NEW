@@ -141,7 +141,7 @@ public class DeviceListAdapter extends BaseAdapter {
                 final ViewHolder holder = (ViewHolder) view.getTag();
                 final String name = device.name;
                 holder.name.setText(name != null ? name : mContext.getString(R.string.not_available));
-                final int rssiPercent = min(100, (int) (100.0f * (127.0f + Integer.parseInt(device.rssi)) / (127.0f + 20.0f)));
+                final int rssiPercent = min(100, (int) (100.0f * (127.0f - Integer.parseInt(device.rssi)) / (127.0f + 20.0f)));
                 holder.rssi.setImageLevel(rssiPercent);
                 holder.rssi.setVisibility(View.VISIBLE);
                 break;

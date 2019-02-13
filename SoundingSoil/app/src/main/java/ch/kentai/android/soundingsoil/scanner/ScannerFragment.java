@@ -5,7 +5,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +44,8 @@ public class ScannerFragment extends DialogFragment {
     private Button mScanButton;
 
     private BlinkyViewModel mViewModel;
+    private View mScanningView;
+
 
 
     public ScannerFragment() {
@@ -115,7 +116,6 @@ public class ScannerFragment extends DialogFragment {
             }
             //Log.i("info", "updateAdapter" + text);
         });
-
     }
 
     @Override
@@ -146,6 +146,12 @@ public class ScannerFragment extends DialogFragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mAdapter.clearDevices();
     }
 
     /**
@@ -190,13 +196,17 @@ public class ScannerFragment extends DialogFragment {
             }
         });
 
+        mScanningView = dialogView.findViewById(R.id.state_scanning);
+
         mViewModel.getInqState().observe(this, state -> {
            // if(!state) dialog.cancel();
+            if(state) mScanningView.setVisibility(View.VISIBLE);
+            else mScanningView.setVisibility(View.INVISIBLE);
+
         });
 
-
-
         mAdapter.clearDevices();
+
 
         //addBoundDevices();
         return dialog;

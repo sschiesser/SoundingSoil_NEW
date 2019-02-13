@@ -372,11 +372,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				mRecState.setText(R.string.rec_state_wait);
 				this.manageBlinkEffect(true);
 			}
-			else {
-				mRecState.setText(R.string.rec_state_on);
-				this.manageBlinkEffect(false);
-				mRecState.setBackgroundColor(Color.RED);
-			}
+            else if(state == 2) {
+                mRecState.setText(R.string.rec_state_on);
+                this.manageBlinkEffect(false);
+                mRecState.setBackgroundColor(Color.RED);
+            }
+            else if(state == 3) {
+                mRecState.setText(R.string.rec_state_preparing);
+                this.manageBlinkEffect(true);
+                mRecState.setBackgroundColor(Color.RED);
+            }
 		});
 
 

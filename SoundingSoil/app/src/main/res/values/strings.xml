@@ -81,6 +81,7 @@
     <string name="rec_state_off">Recording stopped</string>
     <string name="rec_state_wait">Rec waiting...</string>
     <string name="rec_state_on">Recording...</string>
+    <string name="rec_state_preparing">Preparing...</string>
     <string name="rec_state_unknown">Unknown</string>
 
     <string name="mon_state_off">Monitor off</string>

@@ -39,6 +39,17 @@
         android:scrollbarStyle="outsideOverlay"
         tools:listitem="@layout/device_list_row"/>
 
+    <ProgressBar
+        android:id="@+id/state_scanning"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-8dp"
+        android:layout_marginBottom="-7dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@android:color/black"
+        android:visibility="invisible" />
+
     <Button
         android:id="@+id/action_cancel"
         style="?android:attr/buttonBarButtonStyle"

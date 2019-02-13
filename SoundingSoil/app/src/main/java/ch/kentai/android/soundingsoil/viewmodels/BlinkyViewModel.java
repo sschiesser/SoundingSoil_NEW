@@ -66,7 +66,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	// Flag that holds the on off monitor state. On is true, Off is False
 	private final MutableLiveData<Boolean> mMonState = new MutableLiveData<>();
 
-	// Flag that holds the record state. 0 = off, 1 = pause, 2 = recording
+	// Flag that holds the record state. 0 = off, 1 = pause, 2 = recording 3 = preparing
 	private final MutableLiveData<Integer> mRec2State = new MutableLiveData<>();
 
 	// Flag that holds the pressed released state of the button on the devkit.
@@ -235,19 +235,17 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 //	}
 
 	public void toggleRec2() {
-//		if (mRec2State != null) Log.d(TAG, "rec state " + mRec2State.getValue());
 		if(mRec2State.getValue() == null || mRec2State.getValue() == 0) {
 			//long unixTimestamp = Instant.now().getEpochSecond();
 			long unixTime = System.currentTimeMillis() / 1000;
 			mBlinkyManager.send("time " + unixTime);
 			mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 			mBlinkyManager.send("rec start");
-			//mRec2State.setValue(2);	// setvalue 3? == rec preparing
+			mRec2State.setValue(3);		// 3 == rec preparing
 			Log.i("time", getDateCurrentTimeZone(unixTime));
 		}
 		else {
 			mBlinkyManager.send("rec stop");
-			//mRec2State.setValue(0);
 		}
 
 	}
