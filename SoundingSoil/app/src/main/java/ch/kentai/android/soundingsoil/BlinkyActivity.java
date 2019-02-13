@@ -322,7 +322,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		));
 
 		mConnButton.setOnClickListener((v -> {
-			//mViewModel.sendStringToBlinkyManager("conn 0019070CB798 a2dp");
 			mViewModel.sendStringToBlinkyManager("inq");
 			showDeviceScanningDialog();
 		}));
@@ -413,7 +412,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@Override
 	public void onDeviceSelected(final SimpleBluetoothDevice device) {
-		mViewModel.sendStringToBlinkyManager("conn " + device.name + " a2dp" );
+		mViewModel.sendStringToBlinkyManager("conn " + device.name);
 	}
 
 	@Override
