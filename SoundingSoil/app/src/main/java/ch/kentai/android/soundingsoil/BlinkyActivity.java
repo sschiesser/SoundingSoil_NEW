@@ -29,8 +29,11 @@ import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
@@ -169,10 +172,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		pg = findViewById(R.id.pb);
 
 
-//		ActivityCompat.requestPermissions(this,
-//				new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-//				1);
-
 		VisualizerView visualizerView = (VisualizerView) findViewById(R.id.visualizer);
 
 		mRecordingSampler = new RecordingSampler();
@@ -260,10 +259,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		});
 
 
-//        mConnectedView.setOnClickListener(v -> {
-//            if (!mViewModel.isConnected().getValue()) mViewModel.reconnect();
-//        });
-
 		mMonButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -276,7 +271,25 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void onClick(View v) {
 
-				mViewModel.toggleRec2();
+				LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+                boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                Location location = null;
+
+                if (isNetworkEnabled) {
+                    location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                } else if(isGPSEnabled) {
+                    location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
+
+				if(location != null) {
+					double longitude = location.getLongitude();
+					double latitude = location.getLatitude();
+
+					mViewModel.setLatitude(String.format("%.4f", latitude));
+					mViewModel.setLongitude(String.format("%.4f", longitude));
+				}
+				mViewModel.toggleRec();
 			}
 		});
 
@@ -297,13 +310,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		});
 
 
-//		mVolUpButton.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				mViewModel.sendStringToBlinkyManager("vol +");
-//			}
-//		});
-
 		mVolUpButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -321,11 +327,21 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		}
 		));
 
+
 		mConnButton.setOnClickListener((v -> {
-			mViewModel.sendStringToBlinkyManager("inq");
-			showDeviceScanningDialog();
+			// check BT status. if connected -> disconnect
+			String btState = mViewModel.getBTStateChanged().getValue();
+			if(btState.equalsIgnoreCase("IDLE")) {
+				mViewModel.sendStringToBlinkyManager("inq");
+				showDeviceScanningDialog();
+			} else {
+				mViewModel.sendStringToBlinkyManager("disc");
+			}
 		}));
 
+
+
+		// observe -----------------------
 		mViewModel.isDeviceReady().observe(this, deviceReady -> {
 			progressContainer.setVisibility(View.GONE);
 			content.setVisibility(View.VISIBLE);
@@ -362,7 +378,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		});
 
 
-		mViewModel.getRec2State().observe(this, state -> {
+		mViewModel.getRecState().observe(this, state -> {
 			if (state == 0) {
 				mRecState.setText(R.string.rec_state_off);
 				this.manageBlinkEffect(false);
@@ -392,6 +408,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 			}
 		});
+
 
 		mViewModel.getDataReceived().observe(this, string
 				-> {

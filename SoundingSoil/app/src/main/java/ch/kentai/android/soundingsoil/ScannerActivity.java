@@ -39,10 +39,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import java.util.Calendar;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -56,6 +60,7 @@ import ch.kentai.android.soundingsoil.viewmodels.ScannerViewModel;
 
 public class ScannerActivity extends AppCompatActivity implements DevicesAdapter.OnItemClickListener {
 	private static final int REQUEST_ACCESS_COARSE_LOCATION = 1022; // random number
+	private static final int REQUEST_ACCESS_FINE_LOCATION = 1023; // random number
 	private static final int REQUEST_RECORD_AUDIO = 1024; // random number
 
 	private ScannerViewModel mScannerViewModel;
@@ -142,6 +147,7 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		switch (requestCode) {
 			case REQUEST_ACCESS_COARSE_LOCATION:
+			case REQUEST_ACCESS_FINE_LOCATION:
 				mScannerViewModel.refresh();
 				break;
 			case REQUEST_RECORD_AUDIO:
@@ -167,8 +173,8 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 		Utils.markLocationPermissionRequested(this);
 		ActivityCompat.requestPermissions(
 				this,
-				new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
-				REQUEST_ACCESS_COARSE_LOCATION);
+				new String[] { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION },
+				REQUEST_ACCESS_FINE_LOCATION);
 	}
 
 	@OnClick(R.id.action_permission_settings)

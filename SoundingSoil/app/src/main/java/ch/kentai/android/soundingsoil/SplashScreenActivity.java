@@ -27,8 +27,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
-import ch.kentai.android.soundingsoil.R;
-
 public class SplashScreenActivity extends Activity {
 	private static final int DURATION = 1000;
 
@@ -43,6 +41,7 @@ public class SplashScreenActivity extends Activity {
 			startActivity(intent);
 			finish();
 		}, DURATION);
+
 	}
 
 	@Override

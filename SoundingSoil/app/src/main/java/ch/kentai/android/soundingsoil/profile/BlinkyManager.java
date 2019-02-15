@@ -120,47 +120,80 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
 
             mCallbacks.onDataReceived(device, str);
 
-            if(str.equalsIgnoreCase("mon off")) {
-                mCallbacks.onMonStateChanged(device, false);
-            } else if (str.equalsIgnoreCase("mon on")) {
-                mCallbacks.onMonStateChanged(device, true);
-            } else if (str.equalsIgnoreCase("rec on")) {
-				mCallbacks.onRec2StateChanged(device, 2);
-			} else if (str.equalsIgnoreCase("rec off")) {
-				mCallbacks.onRec2StateChanged(device, 0);
-			} else if (str.equalsIgnoreCase("rec wait")) {
-				mCallbacks.onRec2StateChanged(device, 1);
-			} else if (str.startsWith("RWIN")) {
-				Scanner scanner = new Scanner(str);
-				scanner.next();
-				mCallbacks.onDurationChanged(device, scanner.next());
-				mCallbacks.onPeriodChanged(device, scanner.next());
-				mCallbacks.onOccurenceChanged(device, scanner.next());
-			} else if (str.startsWith("FP")) {
-				mCallbacks.onFilepathChanged(device, str);
-			} else if (str.startsWith("BT")) {
-				Scanner scanner = new Scanner(str);
-				scanner.next();
-				mCallbacks.onBTStateChanged(scanner.next());
-			} else if (str.startsWith("VOL") || str.startsWith("ERR")) {
-				mCallbacks.onVolumeChanged(device, str);
-			} else if (str.startsWith("INQ")) {
-            	if (str.equalsIgnoreCase("INQ START")) {
-					mCallbacks.onInqStateChanged(true);
+            String cmd = "", param = "";
 
-				} else if (str.equalsIgnoreCase("INQ DONE")) {
-					mCallbacks.onInqStateChanged(false);
-				} else {
-				Scanner scanner = new Scanner(str);
-				scanner.next();
-				SimpleBluetoothDevice dev = new SimpleBluetoothDevice();
-				dev.name = scanner.next();		// test if scanner has next. test if number
-				dev.rssi = scanner.next();
-				mCallbacks.onDeviceDiscovered(dev);
-            	}
-            }
+			try(Scanner scanner = new Scanner(str)){
+				//scanner.useDelimiter("=");
+				if (scanner.hasNext()){
+					cmd = scanner.next();
+
+					if(cmd.equalsIgnoreCase("MON")) {
+						param = scanner.next();
+
+						if(param.equalsIgnoreCase("ON")) {
+							mCallbacks.onMonStateChanged(device, true);
+						}
+						else if(param.equalsIgnoreCase("OFF")) {
+							mCallbacks.onMonStateChanged(device, false);
+						}
+					} else if (cmd.equalsIgnoreCase("REC")) {
+						param = scanner.next();
+						if(param.equalsIgnoreCase("ON")) {
+							mCallbacks.onRecStateChanged(device, 2);
+						}
+						else if(param.equalsIgnoreCase("OFF")) {
+							mCallbacks.onRecStateChanged(device, 0);
+						}
+						else if(param.equalsIgnoreCase("WAIT")) {
+							mCallbacks.onRecStateChanged(device, 1);
+						}
+					} else if (cmd.equalsIgnoreCase("RWIN")) {
+						if (scanner.hasNextInt()) {
+							param = scanner.next();
+							mCallbacks.onDurationChanged(device, param);
+							if (scanner.hasNextInt()) {
+								param = scanner.next();
+								mCallbacks.onPeriodChanged(device, param);
+								if (scanner.hasNextInt()) {
+									param = scanner.next();
+									mCallbacks.onOccurenceChanged(device, param);
+								}
+							}
+						} else {
+							// RWIN PARAMS OK
+						}
+					} else if (cmd.equalsIgnoreCase("FP")) {
+						param = scanner.next();
+						mCallbacks.onFilepathChanged(device, param);
+					} else if (cmd.equalsIgnoreCase("BT")) {
+						param = scanner.next();
+						mCallbacks.onBTStateChanged(param);
+					} else if (cmd.equalsIgnoreCase("VOL")) {
+						param = scanner.next();
+						mCallbacks.onVolumeChanged(device, param);
+					} else if (cmd.equalsIgnoreCase("INQ")) {
+						param = scanner.next();
+						if(param.equalsIgnoreCase("START")) {
+							mCallbacks.onInqStateChanged(true);
+						}
+						else if(param.equalsIgnoreCase("DONE")) {
+							mCallbacks.onInqStateChanged(false);
+						} else {
+							SimpleBluetoothDevice dev = new SimpleBluetoothDevice();
+							dev.name = param;		// test if scanner has next. test if number
+							dev.rssi = scanner.next();
+							mCallbacks.onDeviceDiscovered(dev);
+						}
+					}
+
+					scanner.close();
+				}
+				else {
+					//log("Empty or invalid line. Unable to process.");
+					scanner.close();
+				}
+			}
 		}
-
 	};
 
 	/**

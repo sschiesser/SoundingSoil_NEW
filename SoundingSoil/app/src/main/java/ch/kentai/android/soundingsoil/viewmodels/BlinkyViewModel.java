@@ -28,6 +28,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -35,6 +38,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import androidx.annotation.NonNull;
@@ -67,7 +71,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	private final MutableLiveData<Boolean> mMonState = new MutableLiveData<>();
 
 	// Flag that holds the record state. 0 = off, 1 = pause, 2 = recording 3 = preparing
-	private final MutableLiveData<Integer> mRec2State = new MutableLiveData<>();
+	private final MutableLiveData<Integer> mRecState = new MutableLiveData<>();
 
 	// Flag that holds the pressed released state of the button on the devkit.
 	// Pressed is true, Released is false
@@ -93,6 +97,12 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	private final MutableLiveData<Boolean> mInqState = new MutableLiveData<>();
 
+	private String latitude = "";
+	private String longitude = "";
+
+	public void setLatitude(String lat) {latitude = lat;}
+	public void setLongitude(String _long) {longitude = _long;}
+
 
     public LiveData<Void> isDeviceReady() {
 		return mOnDeviceReady;
@@ -114,8 +124,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mMonState;
 	}
 
-	public LiveData<Integer> getRec2State() {
-		return mRec2State;
+	public LiveData<Integer> getRecState() {
+		return mRecState;
 	}
 
 	public LiveData<Boolean> isSupported() {
@@ -209,40 +219,31 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mBlinkyManager.disconnect().enqueue();
 	}
 
-//	public void toggleLED(final boolean isOn) {
-//		if(isOn) mBlinkyManager.send("mon start");
-//		else mBlinkyManager.send("mon stop");
-//		mLEDState.setValue(isOn);
-//	}
+
 
 	public void toggleMon() {
 		if(mMonState.getValue()) {
 			mBlinkyManager.send("mon stop");
-			mMonState.setValue(false);
+			//mMonState.setValue(false);
 		}
 		else {
 			mBlinkyManager.send("mon start");
-			mMonState.setValue(true);
+			//mMonState.setValue(true);
 		}
 
 	}
 
-//	public void toggleRec(final boolean isOn) {
-//		if(isOn) mBlinkyManager.send("rec start");
-//		else mBlinkyManager.send("rec stop");
 
-//		mRecState.setValue(isOn);
-//	}
+	public void toggleRec() {
+		if(mRecState.getValue() == null || mRecState.getValue() == 0) {
 
-	public void toggleRec2() {
-		if(mRec2State.getValue() == null || mRec2State.getValue() == 0) {
-			//long unixTimestamp = Instant.now().getEpochSecond();
 			long unixTime = System.currentTimeMillis() / 1000;
+			unixTime += getCurrentTimezoneOffset();		// add time zone offset
 			mBlinkyManager.send("time " + unixTime);
+			mBlinkyManager.send("latlong " + latitude + " " + longitude);
 			mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 			mBlinkyManager.send("rec start");
-			mRec2State.setValue(3);		// 3 == rec preparing
-			Log.i("time", getDateCurrentTimeZone(unixTime));
+			mRecState.setValue(3);		// 3 == rec preparing
 		}
 		else {
 			mBlinkyManager.send("rec stop");
@@ -263,23 +264,14 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 
-//	public void onButtonStateChanged(@NonNull final BluetoothDevice device, final boolean pressed) {
-//		mButtonState.postValue(pressed);
-//	}
-
-//    @Override
-//    public void onLedStateChanged(@NonNull final BluetoothDevice device, final boolean on) {
-//        mLEDState.postValue(on);
-//    }
-
     @Override
 	public void onMonStateChanged(@NonNull final BluetoothDevice device, final boolean on) {
 		mMonState.postValue(on);
 	}
 
 	@Override
-	public void onRec2StateChanged(@NonNull final BluetoothDevice device, final int state) {
-		mRec2State.postValue(state);
+	public void onRecStateChanged(@NonNull final BluetoothDevice device, final int state) {
+		mRecState.postValue(state);
 	}
 
 	@Override
@@ -461,18 +453,16 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		Log.w("tag", "onTextChanged " + s);
 	}
 
-	public  String getDateCurrentTimeZone(long timestamp) {
-		try{
-			Calendar calendar = Calendar.getInstance();
-			TimeZone tz = TimeZone.getDefault();
-			calendar.setTimeInMillis(timestamp * 1000);
-			calendar.add(Calendar.MILLISECOND, tz.getOffset(calendar.getTimeInMillis()));
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date currenTimeZone = (Date) calendar.getTime();
-			return sdf.format(currenTimeZone);
-		}catch (Exception e) {
-		}
-		return "";
+
+	public static int getCurrentTimezoneOffset() {
+
+		TimeZone tz = TimeZone.getDefault();
+		Calendar cal = GregorianCalendar.getInstance(tz);
+		int offsetInMillis = tz.getOffset(cal.getTimeInMillis());
+		int offsetInSeconds = offsetInMillis / 1000;
+
+		return offsetInSeconds;
 	}
+
 
 }

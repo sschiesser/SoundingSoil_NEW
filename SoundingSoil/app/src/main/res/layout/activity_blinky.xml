@@ -83,25 +83,25 @@
 			<LinearLayout
 				android:id="@+id/comm_log"
 				android:layout_width="match_parent"
-				android:layout_height="88dp"
+				android:layout_height="110dp"
 				android:orientation="horizontal">
 
-                <ScrollView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
+				<ScrollView
+					android:layout_width="0dp"
+					android:layout_height="match_parent"
+					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/data_sent_received"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="" />
-                </ScrollView>
+					<TextView
+						android:id="@+id/data_sent_received"
+						android:layout_width="match_parent"
+						android:layout_height="match_parent"
+						android:text="" />
+				</ScrollView>
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+				<LinearLayout
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:orientation="vertical">
 
 					<Button
 						android:id="@+id/status_req_button"
@@ -111,13 +111,13 @@
 						android:text="@string/status_request"
 						android:textSize="12sp" />
 
-                    <Button
-                        android:id="@+id/clear_mon_button"
-                        android:layout_width="80dp"
-                        android:layout_height="45dp"
-                        android:text="@string/clear"
-                        android:textSize="12sp" />
-                </LinearLayout>
+					<Button
+						android:id="@+id/clear_mon_button"
+						android:layout_width="80dp"
+						android:layout_height="45dp"
+						android:text="@string/clear"
+						android:textSize="12sp" />
+				</LinearLayout>
 
 			</LinearLayout>
 
@@ -326,10 +326,11 @@
 						<Button
 							android:id="@+id/conn_button"
 							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
+							android:layout_height="65dp"
 							android:text="Conn"
 							app:layout_constraintEnd_toEndOf="parent"
-							app:layout_constraintTop_toBottomOf="@+id/vol_text" />
+							app:layout_constraintStart_toEndOf="@+id/connex_state"
+							app:layout_constraintTop_toTopOf="@+id/connex_state" />
 
 					</androidx.constraintlayout.widget.ConstraintLayout>
 				</androidx.cardview.widget.CardView>
@@ -342,7 +343,7 @@
 				app:numColumns="100"
 				app:renderColor="@color/white"
 				app:renderRange="both"
-				app:renderType="pixel"/>
+				app:renderType="pixel" />
 
 
 		</LinearLayout>
