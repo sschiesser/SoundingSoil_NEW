@@ -31,6 +31,7 @@ import android.Manifest;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationManager;
@@ -271,24 +272,27 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void onClick(View v) {
 
-				LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-                boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-                Location location = null;
+			    // check permission
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                    boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                    Location location = null;
 
-                if (isNetworkEnabled) {
-                    location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                } else if(isGPSEnabled) {
-                    location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (isNetworkEnabled) {
+                        location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    } else if (isGPSEnabled) {
+                        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    }
+
+                    if (location != null) {
+                        double longitude = location.getLongitude();
+                        double latitude = location.getLatitude();
+
+                        mViewModel.setLatitude(String.format("%.4f", latitude));
+                        mViewModel.setLongitude(String.format("%.4f", longitude));
+                    }
                 }
-
-				if(location != null) {
-					double longitude = location.getLongitude();
-					double latitude = location.getLatitude();
-
-					mViewModel.setLatitude(String.format("%.4f", latitude));
-					mViewModel.setLongitude(String.format("%.4f", longitude));
-				}
 				mViewModel.toggleRec();
 			}
 		});
