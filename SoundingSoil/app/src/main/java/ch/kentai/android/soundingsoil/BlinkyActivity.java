@@ -43,6 +43,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -107,10 +108,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@BindView(R.id.conn_button) Button mConnButton;
 
-	@BindView(R.id.connectedIV) ImageView mConnectedView;
+    @BindView(R.id.connectedIV) ImageView mConnectedView;
+
+    @BindView(R.id.mon_button_part) LinearLayout mon_part;
+    @BindView(R.id.vol_control_part) LinearLayout vol_part;
 
 
-	private ObjectAnimator anim;
+    private ObjectAnimator anim;
 	private static final String TAG = "BlinkyActivity";
 	private boolean mRecordingSamplerReady = false;
 
@@ -125,8 +129,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	private RecordingSampler mRecordingSampler;
 	private static final int REQUEST_CODE = 0;
 	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
-//	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.MODIFY_AUDIO_SETTINGS};
-
 
 
 	@Override
@@ -170,10 +172,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		animation.setRepeatCount(Animation.INFINITE); // Repeat animation infinitely
 		animation.setRepeatMode(Animation.REVERSE); // Reverse animation at the end so the button will fade back in
 
-		pg = findViewById(R.id.pb);
+		pg = findViewById(R.id.volumeBar);
 
 
-		VisualizerView visualizerView = (VisualizerView) findViewById(R.id.visualizer);
+		LinearLayout commMonitor = findViewById(R.id.comm_log);
+		commMonitor.setVisibility(View.GONE);
+		LinearLayout recSettings = findViewById(R.id.rec_settings);
+		recSettings.setVisibility(View.GONE);
+
+
+        VisualizerView visualizerView = (VisualizerView) findViewById(R.id.visualizer);
 
 		mRecordingSampler = new RecordingSampler();
 		mRecordingSampler.setVolumeListener(this);  // for custom implements
@@ -259,6 +267,18 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
+		mConnectedView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(commMonitor.getVisibility() == View.GONE) {
+					commMonitor.setVisibility(View.VISIBLE);
+					recSettings.setVisibility(View.VISIBLE);
+				} else {
+					commMonitor.setVisibility(View.GONE);
+					recSettings.setVisibility(View.GONE);
+				}
+			}
+		});
 
 		mMonButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -335,22 +355,59 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mConnButton.setOnClickListener((v -> {
 			// check BT status. if connected -> disconnect
 			String btState = mViewModel.getBTStateChanged().getValue();
-			if(btState.equalsIgnoreCase("IDLE")) {
-				mViewModel.sendStringToBlinkyManager("inq");
-				showDeviceScanningDialog();
-			} else {
-				mViewModel.sendStringToBlinkyManager("disc");
+			if(btState != null) {
+				if(btState.equalsIgnoreCase("IDLE")) {
+					mViewModel.sendStringToBlinkyManager("inq");
+					showDeviceScanningDialog();
+				} else {
+					mViewModel.sendStringToBlinkyManager("disc");
+				}
 			}
 		}));
 
 
 
 		// observe -----------------------
+		mViewModel.getBTStateChanged().observe(this, btState -> {
+			Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
+			if(btState.equalsIgnoreCase("IDLE")) {
+				// turn off monitor if on
+				if (mViewModel.getMonState().getValue()) {
+					mViewModel.toggleMon();
+				}
+
+
+				final Handler handler = new Handler();
+				handler.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						// show monitor elements as inactive
+						mon_part.setAlpha(.5f);
+						vol_part.setAlpha(.5f);
+						mMonButton.setEnabled(false);
+						mVolDownButton.setEnabled(false);
+						mVolUpButton.setEnabled(false);
+						mConnButton.setText("Connect");
+					}
+				}, 500);
+
+			} else {
+                mon_part.setAlpha(1.0f);
+                vol_part.setAlpha(1.0f);
+                mMonButton.setEnabled(true);
+                mVolDownButton.setEnabled(true);
+                mVolUpButton.setEnabled(true);
+				mConnButton.setText("Disconnect");
+
+            }
+			Log.d(TAG, "Audio BT state: " + btState);
+		});
+
 		mViewModel.isDeviceReady().observe(this, deviceReady -> {
 			progressContainer.setVisibility(View.GONE);
 			content.setVisibility(View.VISIBLE);
 			mViewModel.requestDeviceStatus();
-			Log.d(TAG, "device ready" + deviceReady);
+			Log.d(TAG, "device ready: " + deviceReady);
 		});
 
 		mViewModel.getConnectionState().observe(this, text -> {
@@ -358,7 +415,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				progressContainer.setVisibility(View.VISIBLE);
 				notSupported.setVisibility(View.GONE);
 				connectionState.setText(text);
-				Log.d(TAG, "connection state" + text);
+				Log.d(TAG, "connection state: " + text);
 			}
 		});
 
@@ -375,8 +432,14 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mViewModel.getMonState().observe(this, isOn -> {
 			mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
 			//if (mRecordingSamplerReady) {
-				if (isOn) 	mRecordingSampler.startRecording();
-				else 		mRecordingSampler.stopRecording();
+				if (isOn) 	{
+					mRecordingSampler.startRecording();
+					mMonButton.setColorFilter(Color.GREEN);
+				}
+				else {
+					mMonButton.setColorFilter(Color.argb(255, 10, 180, 10));
+					mRecordingSampler.stopRecording();
+				}
 				//Log.i("recorder", "ready");
 			//}
 		});
@@ -386,7 +449,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			if (state == 0) {
 				mRecState.setText(R.string.rec_state_off);
 				this.manageBlinkEffect(false);
-				mRecState.setBackgroundColor(Color.WHITE);
+				mRecButton.setColorFilter(Color.argb(255, 196, 71, 71));
+				//mRecState.setBackgroundColor(Color.WHITE);
 			}
 			else if (state == 1) {
 				mRecState.setText(R.string.rec_state_wait);
@@ -395,19 +459,22 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
             else if(state == 2) {
                 mRecState.setText(R.string.rec_state_on);
                 this.manageBlinkEffect(false);
-                mRecState.setBackgroundColor(Color.RED);
+                //mRecState.setBackgroundColor(Color.RED);
+				mRecButton.setColorFilter(Color.argb(255, 250, 69, 32));
             }
             else if(state == 3) {
                 mRecState.setText(R.string.rec_state_preparing);
                 this.manageBlinkEffect(true);
-                mRecState.setBackgroundColor(Color.RED);
+                //mRecState.setBackgroundColor(Color.RED);
             }
 		});
 
 
 		mViewModel.getVolume().observe(this, string -> {
 			try {
-				pg.setProgress((int)(Float.parseFloat(string) * 94.34));
+				int vol = (int)(Float.parseFloat(string) * 94.34);
+				pg.setProgress(vol);
+				Log.d(TAG, "BT Vol: " + vol);
 			} catch (NumberFormatException e) {
 
 			}
@@ -430,8 +497,9 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
-		anim = ObjectAnimator.ofInt(mRecState, "backgroundColor", Color.WHITE, Color.RED,
-				Color.WHITE);
+		anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 196, 71, 71), Color.argb(255, 250, 69, 32));
+//		anim = ObjectAnimator.ofInt(mRecState, "backgroundColor", Color.WHITE, Color.RED,
+//				Color.WHITE);
 
 	}
 
@@ -458,12 +526,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		Log.d(TAG, "connex state changed: " + connected);
 		if (connected) {
 			mViewModel.requestDeviceStatus();
-			//mConnexState.setText("Connected");
+
 			mConnectedView.setImageResource(R.drawable.icons8_connected_48);
 			mConnectedView.setColorFilter(Color.GREEN);
 		}
 		else {
-			//mConnexState.setText("Disconnected");
 			mConnectedView.setImageResource(R.drawable.icons8_disconnected_48);
 			mConnectedView.setColorFilter(Color.RED);
 		}
@@ -509,6 +576,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	@Override
 	protected void onDestroy() {
 		mRecordingSampler.release();
+		mViewModel.disconnect();
 		super.onDestroy();
 	}
 

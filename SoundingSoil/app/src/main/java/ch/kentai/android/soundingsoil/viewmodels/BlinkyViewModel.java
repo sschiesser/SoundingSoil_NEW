@@ -31,6 +31,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Handler;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -214,7 +215,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	/**
 	 * Disconnect from peripheral.
 	 */
-	private void disconnect() {
+	public void disconnect() {
 		mDevice = null;
 		mBlinkyManager.disconnect().enqueue();
 	}
@@ -432,9 +433,22 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
         mBlinkyManager.send("bt ?");
         mBlinkyManager.send("vol ?");
         mBlinkyManager.send("rwin ?");
-        mBlinkyManager.send("rec ?");
-        mBlinkyManager.send("mon ?");
-		mBlinkyManager.send("filepath ?");
+
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // show monitor elements as inactive
+                mBlinkyManager.send("rec ?");
+                mBlinkyManager.send("mon ?");
+                mBlinkyManager.send("filepath ?");
+            }
+        }, 250);
+
+
+
+
     }
 
 	public void setDuration(String string	) {

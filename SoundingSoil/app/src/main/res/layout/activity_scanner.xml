@@ -34,13 +34,14 @@
 		android:id="@+id/appbar_layout"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:theme="@style/AppTheme.AppBarOverlay">
+		android:theme="@style/AppTheme.AppBarOverlay"
+		app:layout_constraintTop_toTopOf="parent">
 
 		<androidx.appcompat.widget.Toolbar
 			android:id="@+id/toolbar"
 			android:layout_width="match_parent"
 			android:layout_height="?actionBarSize"
-			android:background="?attr/colorPrimary"
+			android:background="#000000"
 			app:popupTheme="@style/AppTheme.PopupOverlay" />
 
 		<ProgressBar

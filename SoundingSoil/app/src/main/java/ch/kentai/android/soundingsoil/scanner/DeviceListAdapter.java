@@ -62,7 +62,8 @@ public class DeviceListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        final int availableCount = mListValues.isEmpty() ? 2 : mListValues.size() + 1; // 1 for title, 1 for empty text
+        final int availableCount = mListValues.isEmpty() ? 1 : mListValues.size() ; // 1 for title, 1 for empty text
+//        final int availableCount = mListValues.isEmpty() ? 2 : mListValues.size() + 1; // 1 for title, 1 for empty text
         return availableCount;
     }
 
@@ -70,10 +71,12 @@ public class DeviceListAdapter extends BaseAdapter {
     @Override
     public Object getItem(int position) {
 
-        if (position == 0)
-            return R.string.scanner_subtitle_not_bonded;
-        else
-            return mListValues.get(position - 1);
+//        if (position == 0)
+//            return R.string.scanner_subtitle_not_bonded;
+//        else
+//            return mListValues.get(position - 1);
+
+            return mListValues.get(position);
     }
 
 
@@ -94,8 +97,8 @@ public class DeviceListAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0)
-            return TYPE_TITLE;
+        //if (position == 0)
+          //  return TYPE_TITLE;
 
         if (position == getCount() - 1 && mListValues.isEmpty())
             return TYPE_EMPTY;
@@ -125,7 +128,7 @@ public class DeviceListAdapter extends BaseAdapter {
                     view = inflater.inflate(R.layout.device_list_title, parent, false);
                 }
                 final TextView title = (TextView) view;
-                title.setText((Integer) getItem(position));
+                //title.setText((Integer) getItem(position));
                 break;
             default:
                 if (view == null) {

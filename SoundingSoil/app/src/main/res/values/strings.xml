@@ -83,9 +83,12 @@
     <string name="rec_state_on">Recording...</string>
     <string name="rec_state_preparing">Preparing...</string>
     <string name="rec_state_unknown">Unknown</string>
+    <string name="file_path_label">Filename: </string>
 
     <string name="mon_state_off">Monitor off</string>
     <string name="mon_state_on">Monitor on</string>
+    <string name="connect_audio">Connect</string>
+    <string name="disconnect_audio">Disconnect</string>
 
     <string name="vol_up">Vol up</string>
     <string name="vol_down">Vol down</string>
