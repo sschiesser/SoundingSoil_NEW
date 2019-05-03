@@ -438,11 +438,19 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
 					} else {
 						mRecordingSampler.startRecording();
+						vol_part.setAlpha(1.0f);
+						mVolDownButton.setEnabled(true);
+						mVolUpButton.setEnabled(true);
+
 					}
 				}
 				else {
 					mMonButton.setColorFilter(Color.argb(255, 10, 180, 10));
 					mRecordingSampler.stopRecording();
+					vol_part.setAlpha(.5f);
+					mVolDownButton.setEnabled(false);
+					mVolUpButton.setEnabled(false);
+
 				}
 				//Log.i("recorder", "ready");
 			//}
