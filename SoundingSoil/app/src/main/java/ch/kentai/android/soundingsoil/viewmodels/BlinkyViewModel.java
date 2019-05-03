@@ -182,6 +182,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mDataSentReceived.setValue(new ArrayList<String>());
 		mMonState.setValue(false);
 		duration.setValue("11");
+		mBTStateChanged.postValue("disconnected");
 	}
 
 	/**
@@ -430,26 +431,34 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	public void requestDeviceStatus() {
-        mBlinkyManager.send("bt ?");
-        mBlinkyManager.send("vol ?");
+		mBlinkyManager.send("rec ?");
+		mBlinkyManager.send("mon ?");
         mBlinkyManager.send("rwin ?");
 
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // show monitor elements as inactive
-                mBlinkyManager.send("rec ?");
-                mBlinkyManager.send("mon ?");
-                mBlinkyManager.send("filepath ?");
-            }
-        }, 250);
+		final Handler handler1 = new Handler();
+		handler1.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				// show monitor elements as inactive
+				mBlinkyManager.send("filepath ?");
+				mBlinkyManager.send("vol ?");
+			}
+		}, 500);
+
+		final Handler handler2 = new Handler();
+		handler2.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				// show monitor elements as inactive
+				mBlinkyManager.send("bt ?");
+			}
+		}, 1000);
 
 
 
 
-    }
+	}
 
 	public void setDuration(String string	) {
 		duration.setValue(string);

@@ -169,8 +169,10 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
 						param = scanner.next();
 						mCallbacks.onBTStateChanged(param);
 					} else if (cmd.equalsIgnoreCase("VOL")) {
-						param = scanner.next();
-						mCallbacks.onVolumeChanged(device, param);
+						if (scanner.hasNextFloat()) {
+							param = String.valueOf((int)(scanner.nextFloat() * 100));
+							mCallbacks.onVolumeChanged(device, param);
+						}
 					} else if (cmd.equalsIgnoreCase("INQ")) {
 						param = scanner.next();
 						if(param.equalsIgnoreCase("START")) {

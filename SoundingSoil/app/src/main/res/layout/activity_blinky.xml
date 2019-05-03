@@ -342,6 +342,7 @@
 						android:insetTop="0dp"
 						android:insetBottom="0dp"
 						android:text="@string/connect_audio"
+						app:cornerRadius="0dp"
 						app:iconPadding="0dp" />
 				</LinearLayout>
 
@@ -366,6 +367,7 @@
 							style="?android:attr/progressBarStyleHorizontal"
 							android:layout_width="wrap_content"
 							android:layout_height="match_parent"
+							android:layout_margin="2dp"
 							android:layout_weight="1"
 							android:progressTint="#FFFFFF" />
 

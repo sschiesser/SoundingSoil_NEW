@@ -356,7 +356,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			// check BT status. if connected -> disconnect
 			String btState = mViewModel.getBTStateChanged().getValue();
 			if(btState != null) {
-				if(btState.equalsIgnoreCase("IDLE")) {
+				if(btState.equalsIgnoreCase("disconnected")) {
 					mViewModel.sendStringToBlinkyManager("inq");
 					showDeviceScanningDialog();
 				} else {
@@ -370,7 +370,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		// observe -----------------------
 		mViewModel.getBTStateChanged().observe(this, btState -> {
 			Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
-			if(btState.equalsIgnoreCase("IDLE")) {
+			if(btState.equalsIgnoreCase("disconnected")) {
 				// turn off monitor if on
 				if (mViewModel.getMonState().getValue()) {
 					mViewModel.toggleMon();
@@ -382,23 +382,24 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					@Override
 					public void run() {
 						// show monitor elements as inactive
-						mon_part.setAlpha(.5f);
+						//mon_part.setAlpha(.5f);
+						//mMonButton.setEnabled(false);
 						vol_part.setAlpha(.5f);
-						mMonButton.setEnabled(false);
 						mVolDownButton.setEnabled(false);
 						mVolUpButton.setEnabled(false);
-						mConnButton.setText("Connect");
+						mConnButton.setText("CONNECT");
 					}
 				}, 500);
 
-			} else {
-                mon_part.setAlpha(1.0f);
-                vol_part.setAlpha(1.0f);
-                mMonButton.setEnabled(true);
-                mVolDownButton.setEnabled(true);
-                mVolUpButton.setEnabled(true);
-				mConnButton.setText("Disconnect");
-
+			} else { // connected
+                //mon_part.setAlpha(1.0f);
+                //mMonButton.setEnabled(true);
+				if (mViewModel.getMonState().getValue()) {	// monitor on
+					vol_part.setAlpha(1.0f);
+					mVolDownButton.setEnabled(true);
+					mVolUpButton.setEnabled(true);
+					mConnButton.setText("DISCONNECT");
+				}
             }
 			Log.d(TAG, "Audio BT state: " + btState);
 		});
@@ -433,8 +434,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
 			//if (mRecordingSamplerReady) {
 				if (isOn) 	{
-					mRecordingSampler.startRecording();
 					mMonButton.setColorFilter(Color.GREEN);
+					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+					} else {
+						mRecordingSampler.startRecording();
+					}
 				}
 				else {
 					mMonButton.setColorFilter(Color.argb(255, 10, 180, 10));
@@ -472,7 +476,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		mViewModel.getVolume().observe(this, string -> {
 			try {
-				int vol = (int)(Float.parseFloat(string) * 94.34);
+				int vol = (int)Float.parseFloat(string);
 				pg.setProgress(vol);
 				Log.d(TAG, "BT Vol: " + vol);
 			} catch (NumberFormatException e) {
