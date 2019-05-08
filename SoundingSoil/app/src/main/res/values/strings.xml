@@ -68,7 +68,7 @@
     <string name="state_connecting">Connecting…</string>
     <string name="state_discovering_services">Discovering services…</string>
     <string name="state_initializing">Initializing…</string>
-    <string name="state_disconnected">Device disconnected.</string>
+    <string name="state_disconnected">DISCONNECTED</string>
     <string name="title_mon">Mon</string>
 
     <string name="status_request">status &#10; request</string>
@@ -83,6 +83,8 @@
     <string name="rec_state_on">RECORDING...</string>
     <string name="rec_state_preparing">PREPARING...</string>
     <string name="rec_state_unknown">UNKNOWN</string>
+    <string name="rec_time_label">REMAINING TIME: </string>
+    <string name="rec_number_label">RECORD NUMBER: </string>
     <string name="file_path_label">FILENAME: </string>
 
     <string name="mon_state_off">MONITOR OFF</string>
@@ -93,8 +95,8 @@
     <string name="vol_up">Vol up</string>
     <string name="vol_down">Vol down</string>
 
-    <string name="scanner_title">Select device:</string>
-    <string name="scanner_empty">No device found</string>
+    <string name="scanner_title">SELECT BT RECEIVER:</string>
+    <string name="scanner_empty">NO DEVICE FOUND</string>
     <string name="scanner_action_scan">Scan</string>
     <string name="scanner_action_cancel">Cancel</string>
     <string name="scanner_subtitle_bonded">BONDED DEVICES:</string>

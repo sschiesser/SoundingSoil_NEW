@@ -22,8 +22,6 @@
 
 package ch.kentai.android.soundingsoil;
 
-import ak.sh.ay.musicwave.MusicWave;
-import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -35,15 +33,15 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.os.Environment;
-import android.media.audiofx.Visualizer;
+import android.nfc.FormatException;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+//import android.support.v4.content.ContextCompat;
+
 
 import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -62,9 +60,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.graphics.Color;
 
-import com.tyorikan.voicerecordingvisualizer.RecordingSampler;
-import com.tyorikan.voicerecordingvisualizer.VisualizerView;
+import com.newventuresoftware.waveform.WaveformView;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -79,8 +82,15 @@ import ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel;
 import ch.kentai.android.soundingsoil.scanner.ScannerFragment;
 import ch.kentai.android.soundingsoil.utils.RepeatListener;
 
+import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurrentTimezoneOffset;
+
 @SuppressWarnings("ConstantConditions")
-public class BlinkyActivity extends AppCompatActivity implements ScannerFragment.OnDeviceSelectedListener, RecordingSampler.CalculateVolumeListener {
+public class BlinkyActivity extends AppCompatActivity implements ScannerFragment.OnDeviceSelectedListener {
+
+	private WaveformView mRealtimeWaveformView;
+	private RecordingThread mRecordingThread;
+
+
 	public static final String EXTRA_DEVICE = "no.nordicsemi.android.blinky.EXTRA_DEVICE";
 
 	private BlinkyViewModel mViewModel;
@@ -98,7 +108,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	@BindView(R.id.connex_state) TextView mConnexState;
 
 	@BindView(R.id.rec_button) ImageButton mRecButton;
-	@BindView(R.id.rec_state) TextView mRecState;
+	@BindView(R.id.rec_state) TextView mRecStateView;
 
 	@BindView(R.id.vol_up_button) ImageButton mVolUpButton;
 	@BindView(R.id.vol_down_button) ImageButton mVolDownButton;
@@ -113,22 +123,21 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
     @BindView(R.id.mon_button_part) LinearLayout mon_part;
     @BindView(R.id.vol_control_part) LinearLayout vol_part;
 
+	@BindView(R.id.rec_time) TextView mRecTimeView;
+	@BindView(R.id.rec_number) TextView mRecNumberView;
 
     private ObjectAnimator anim;
 	private static final String TAG = "BlinkyActivity";
-	private boolean mRecordingSamplerReady = false;
+	//private boolean mRecordingSamplerReady = false;
 
 	private ProgressBar pg;
 
-//	private MediaRecorder mMediaRecorder;
-//	private WaveformView waveformView;
-//	private Visualizer mVisualizer;
-//	private MusicWave musicWave;
-//	private String outputFile;
-
-	private RecordingSampler mRecordingSampler;
 	private static final int REQUEST_CODE = 0;
 	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
+	private  int recTime = 0;
+	private int recState = 0;
+
+	//private Runnable recTimer;
 
 
 	@Override
@@ -181,21 +190,57 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		recSettings.setVisibility(View.GONE);
 
 
-        VisualizerView visualizerView = (VisualizerView) findViewById(R.id.visualizer);
 
-		mRecordingSampler = new RecordingSampler();
-		mRecordingSampler.setVolumeListener(this);  // for custom implements
-		mRecordingSampler.setSamplingInterval(100); // voice sampling interval
-		mRecordingSampler.link(visualizerView);     // link to visualizer
-		mRecordingSampler.startRecording();
+		mRealtimeWaveformView = (WaveformView) findViewById(R.id.waveformView);
+		mRecordingThread = new RecordingThread(new AudioDataReceivedListener() {
+			@Override
+			public void onAudioDataReceived(short[] data) {
+				mRealtimeWaveformView.setSamples(data);
+			}
+		});
+
 
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				mRecordingSamplerReady = true;
+				//mRecordingSamplerReady = true;
 			}
 		}, 1000);
+
+
+		Thread recTimer = new Thread() {
+			@Override
+			public void run() {
+
+				while(!isInterrupted()) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						mRecTimeView.setText(" " + Integer.toString(recTime) + "s"); //this is the textview
+					}
+				});
+
+				if (recState == 2 || recState == 1) {
+					// state recording or waiting
+					if (recTime > 0) {
+						recTime -= 1;
+					}
+				} else {
+					// state stopped or preparing
+					recTime = 0;
+				}
+
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					throw new IllegalStateException(e);
+				}
+			}
+			}
+		};
+		recTimer.start();
+
 
 		try {
 			SQLiteDatabase mDataBase = this.openOrCreateDatabase("Presets", MODE_PRIVATE, null);
@@ -204,6 +249,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 
 
 
@@ -370,6 +416,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		// observe -----------------------
 		mViewModel.getBTStateChanged().observe(this, btState -> {
 			Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
+
 			if(btState.equalsIgnoreCase("disconnected")) {
 				// turn off monitor if on
 				if (mViewModel.getMonState().getValue()) {
@@ -381,9 +428,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				handler.postDelayed(new Runnable() {
 					@Override
 					public void run() {
-						// show monitor elements as inactive
-						//mon_part.setAlpha(.5f);
-						//mMonButton.setEnabled(false);
 						vol_part.setAlpha(.5f);
 						mVolDownButton.setEnabled(false);
 						mVolUpButton.setEnabled(false);
@@ -392,13 +436,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				}, 500);
 
 			} else { // connected
-                //mon_part.setAlpha(1.0f);
-                //mMonButton.setEnabled(true);
+                mConnButton.setText("DISCONNECT");
 				if (mViewModel.getMonState().getValue()) {	// monitor on
 					vol_part.setAlpha(1.0f);
 					mVolDownButton.setEnabled(true);
 					mVolUpButton.setEnabled(true);
-					mConnButton.setText("DISCONNECT");
 				}
             }
 			Log.d(TAG, "Audio BT state: " + btState);
@@ -435,9 +477,10 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			//if (mRecordingSamplerReady) {
 				if (isOn) 	{
 					mMonButton.setColorFilter(Color.GREEN);
+					//mRecordingThread.startRecording();
 					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
 					} else {
-						mRecordingSampler.startRecording();
+						mRecordingThread.startRecording();
 						vol_part.setAlpha(1.0f);
 						mVolDownButton.setEnabled(true);
 						mVolUpButton.setEnabled(true);
@@ -446,7 +489,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				}
 				else {
 					mMonButton.setColorFilter(Color.argb(255, 10, 180, 10));
-					mRecordingSampler.stopRecording();
+					mRecordingThread.stopRecording();
 					vol_part.setAlpha(.5f);
 					mVolDownButton.setEnabled(false);
 					mVolUpButton.setEnabled(false);
@@ -458,27 +501,95 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 
 		mViewModel.getRecState().observe(this, state -> {
+			recState = state;
 			if (state == 0) {
-				mRecState.setText(R.string.rec_state_off);
+				mRecStateView.setText(R.string.rec_state_off);
 				this.manageBlinkEffect(false);
-				mRecButton.setColorFilter(Color.argb(255, 196, 71, 71));
-				//mRecState.setBackgroundColor(Color.WHITE);
+				mRecButton.setColorFilter(Color.argb(255, 166, 51, 51));
+				//mRecStateView.setBackgroundColor(Color.WHITE);
 			}
 			else if (state == 1) {
-				mRecState.setText(R.string.rec_state_wait);
+				mRecStateView.setText(R.string.rec_state_wait);
 				this.manageBlinkEffect(true);
+				// request time of next record to set wait countdown timer
+
+
 			}
-            else if(state == 2) {
-                mRecState.setText(R.string.rec_state_on);
-                this.manageBlinkEffect(false);
-                //mRecState.setBackgroundColor(Color.RED);
+			else if(state == 2) {
+				mRecStateView.setText(R.string.rec_state_on);
+				this.manageBlinkEffect(false);
+				//mRecStateView.setBackgroundColor(Color.RED);
 				mRecButton.setColorFilter(Color.argb(255, 250, 69, 32));
-            }
-            else if(state == 3) {
-                mRecState.setText(R.string.rec_state_preparing);
-                this.manageBlinkEffect(true);
-                //mRecState.setBackgroundColor(Color.RED);
-            }
+			}
+			else if(state == 3) {
+				mRecStateView.setText(R.string.rec_state_preparing);
+				this.manageBlinkEffect(true);
+				//mRecStateView.setBackgroundColor(Color.RED);
+			}
+		});
+
+
+		mViewModel.getRecNumber().observe(this, recNumber -> {
+			Log.d(TAG, "Rec Number: " + recNumber);
+
+			mRecNumberView.setText(recNumber + " of " + mViewModel.getOccurence().getValue());
+		});
+
+
+		mViewModel.getNextRecTime().observe(this, nextRectime -> {
+			Log.d(TAG, "Next Rec Time: " + nextRectime);
+			int nRecTime = Integer.parseInt(nextRectime);
+			long unixTime = System.currentTimeMillis() / 1000;
+			unixTime += getCurrentTimezoneOffset();		// add time zone offset
+			recTime = nRecTime - (int)unixTime;
+			Log.d(TAG, "Next Rec in: " + recTime + "s");
+		});
+
+
+		mViewModel.getFilepath().observe(this, path -> {
+			if (path.equalsIgnoreCase("--")) {
+
+			} else {
+				// compare timestamp e.g. /190507/175838.wav from filepath with current time and duration setting to set rec time countdown timer
+				int start = path.indexOf("/") + 1;
+				int end = path.indexOf(".wav");
+				if (start  < path.length() && end < path.length()) {
+					String inputTime = path.substring(start, end);
+					Log.d(TAG, "Rec Start time: " + inputTime);
+
+					SimpleDateFormat inputFormat = new SimpleDateFormat("yyMMdd/HHmmss");
+					Date date = null;
+
+					try {
+						date = inputFormat.parse(inputTime);
+					} catch (ParseException e) {
+					}
+
+					// get local time
+					long unixTime = System.currentTimeMillis();
+					long diff = unixTime - date.getTime();
+					Log.d(TAG, "Rec time difference: " + unixTime + " " + date.getTime() + " "  + diff);
+
+					int dur;
+					try {
+						dur = Integer.parseInt(mViewModel.getDuration().getValue());
+					}
+					catch (NumberFormatException e)
+					{
+						dur = 0;
+					}
+
+					if (dur != 0) {
+						// not endless recording duration
+						// reset the count down
+						recTime = dur - (int)(diff / 1000);
+						Log.d(TAG, "Rec time: " + recTime);
+					} else {
+
+					}
+				}
+			}
+			Log.d(TAG, "Filepath: " + path);
 		});
 
 
@@ -509,8 +620,9 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
-		anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 196, 71, 71), Color.argb(255, 250, 69, 32));
-//		anim = ObjectAnimator.ofInt(mRecState, "backgroundColor", Color.WHITE, Color.RED,
+		anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 166, 51, 51), Color.argb(255, 250, 69, 32));
+
+//		anim = ObjectAnimator.ofInt(mRecStateView, "backgroundColor", Color.WHITE, Color.RED,
 //				Color.WHITE);
 
 	}
@@ -550,7 +662,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	private void manageBlinkEffect(boolean isOn) {
 		if (isOn) {
-			anim.setDuration(1500);
+			anim.setDuration(1000);
 			anim.setEvaluator(new ArgbEvaluator());
 			anim.setRepeatMode(ValueAnimator.REVERSE);
 			anim.setRepeatCount(ValueAnimator.INFINITE);
@@ -579,23 +691,27 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 //		}
 //	}
 
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+
+		mRecordingThread.stopRecording();
+	}
+
+
 	@Override
 	protected void onPause() {
-		mRecordingSampler.stopRecording();
+		//mRecordingSampler.stopRecording();
 		super.onPause();
 	}
 
 	@Override
 	protected void onDestroy() {
-		mRecordingSampler.release();
+		//mRecordingSampler.release();
 		mViewModel.disconnect();
 		super.onDestroy();
 	}
 
-	@Override
-	public void onCalculateVolume(int volume) {
-		// for custom implement
-		//Log.d(TAG, String.valueOf(volume));
-	}
 
 }

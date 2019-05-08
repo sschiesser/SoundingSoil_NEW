@@ -74,11 +74,16 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	// Flag that holds the record state. 0 = off, 1 = pause, 2 = recording 3 = preparing
 	private final MutableLiveData<Integer> mRecState = new MutableLiveData<>();
 
+	// current number of record in a record serie
+	private final MutableLiveData<Integer> mRecNumber = new MutableLiveData<>();
+
 	// Flag that holds the pressed released state of the button on the devkit.
 	// Pressed is true, Released is false
 	private final MutableLiveData<Boolean> mButtonState = new MutableLiveData<>();
 
 	private final MutableLiveData<String> mDataReceived = new MutableLiveData<>();
+
+	private final MutableLiveData<String> mNextRecTime = new MutableLiveData<>();
 
 	private final MutableLiveData<String> mDataSent = new MutableLiveData<>();
 
@@ -129,12 +134,20 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mRecState;
 	}
 
+	public LiveData<Integer> getRecNumber() {
+		return mRecNumber;
+	}
+
 	public LiveData<Boolean> isSupported() {
 		return mIsSupported;
 	}
 
 	public LiveData<String> getDataReceived() {
 		return mDataReceived;
+	}
+
+	public LiveData<String> getNextRecTime() {
+		return mNextRecTime;
 	}
 
 	public LiveData<String> getDataSent() {
@@ -182,7 +195,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mDataSentReceived.setValue(new ArrayList<String>());
 		mMonState.setValue(false);
 		duration.setValue("11");
-		mBTStateChanged.postValue("disconnected");
+		mBTStateChanged.postValue("DISCONNECTED");
+		mConnectionState.setValue("");
+		mRecNumber.setValue(0);
+		//mNextRecTime.setValue("");
 	}
 
 	/**
@@ -277,6 +293,16 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	@Override
+	public void onRecNumberChanged(@NonNull final BluetoothDevice device, final int recNumber) {
+		mRecNumber.postValue(recNumber);
+	}
+
+	@Override
+	public void onNextRecTimeChanged(@NonNull final BluetoothDevice device, final String recTime) {
+		mNextRecTime.postValue(recTime);
+	}
+
+	@Override
 	public void onDataReceived(@NonNull final BluetoothDevice device, final String string) {
 		mDataReceived.postValue(string);
 		addToDataSentReceived("R: " + string);
@@ -338,7 +364,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	@Override
 	public void onBTStateChanged(@NonNull final String string) {
-		mBTStateChanged.postValue(string);
+		mBTStateChanged.postValue(string.toUpperCase());
 		Log.w("tag", "onBTStateChanged " + string);
 
 	}
