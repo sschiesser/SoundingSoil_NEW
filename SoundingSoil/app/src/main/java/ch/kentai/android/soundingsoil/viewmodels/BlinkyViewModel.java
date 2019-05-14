@@ -198,6 +198,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mBTStateChanged.postValue("DISCONNECTED");
 		mConnectionState.setValue("");
 		mRecNumber.setValue(0);
+		mIsConnected.setValue(true);
 		//mNextRecTime.setValue("");
 	}
 
@@ -469,6 +470,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 				// show monitor elements as inactive
 				mBlinkyManager.send("filepath ?");
 				mBlinkyManager.send("vol ?");
+				mBlinkyManager.send("rec_next ?");
+				mBlinkyManager.send("rec_nb ?");
 			}
 		}, 500);
 

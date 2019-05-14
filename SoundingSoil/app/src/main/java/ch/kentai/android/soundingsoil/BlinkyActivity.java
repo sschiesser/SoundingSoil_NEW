@@ -22,6 +22,8 @@
 
 package ch.kentai.android.soundingsoil;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -31,6 +33,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.location.LocationManager;
 import android.nfc.FormatException;
@@ -45,6 +52,9 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -102,7 +112,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	@BindView(R.id.period_text) EditText mPeriodField;
 	@BindView(R.id.occurence_text) EditText mOccurenceField;
 
-	@BindView(R.id.mon_button) ImageButton mMonButton;
+	@BindView(R.id.mon_button) Button mMonButton;
 	@BindView(R.id.mon_state) TextView mMonState;
 
 	@BindView(R.id.connex_state) TextView mConnexState;
@@ -118,26 +128,33 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@BindView(R.id.conn_button) Button mConnButton;
 
-    @BindView(R.id.connectedIV) ImageView mConnectedView;
-
     @BindView(R.id.mon_button_part) LinearLayout mon_part;
     @BindView(R.id.vol_control_part) LinearLayout vol_part;
 
 	@BindView(R.id.rec_time) TextView mRecTimeView;
 	@BindView(R.id.rec_number) TextView mRecNumberView;
 
+	@BindView(R.id.comm_log) LinearLayout commMonitor;
+	@BindView(R.id.rec_settings) LinearLayout recSettings;
+
+	@BindView(R.id.mon_state_led) ImageView monLED;
+	@BindView(R.id.connex_state_led) ImageView connexLED;
+
     private ObjectAnimator anim;
 	private static final String TAG = "BlinkyActivity";
-	//private boolean mRecordingSamplerReady = false;
 
 	private ProgressBar pg;
 
 	private static final int REQUEST_CODE = 0;
 	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
 	private  int recTime = 0;
+	private  int nextRecTime = 0;
 	private int recState = 0;
 
-	//private Runnable recTimer;
+	MenuItem connectItem;
+
+	Drawable redConnectIcon;
+	Drawable greenConnectIcon;
 
 
 	@Override
@@ -164,8 +181,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		final Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
-		getSupportActionBar().setTitle(deviceName);
-		getSupportActionBar().setSubtitle(deviceAddress);
+		getSupportActionBar().setTitle(deviceName.toUpperCase());
+		//getSupportActionBar().setSubtitle(deviceAddress);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		// Set up views
@@ -184,12 +201,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		pg = findViewById(R.id.volumeBar);
 
 
-		LinearLayout commMonitor = findViewById(R.id.comm_log);
 		commMonitor.setVisibility(View.GONE);
-		LinearLayout recSettings = findViewById(R.id.rec_settings);
 		recSettings.setVisibility(View.GONE);
-
-
 
 		mRealtimeWaveformView = (WaveformView) findViewById(R.id.waveformView);
 		mRecordingThread = new RecordingThread(new AudioDataReceivedListener() {
@@ -199,8 +212,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
-
-		Timer timer = new Timer();
+        Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -217,7 +229,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						mRecTimeView.setText(" " + Integer.toString(recTime) + "s"); //this is the textview
+						if (recState == 1) {
+							// waiting: display next rec time
+						} else {
+							mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
+						}
 					}
 				});
 
@@ -249,8 +265,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-
 
 
 		mDurationField.addTextChangedListener(new TextWatcher() {
@@ -313,18 +327,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
-		mConnectedView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if(commMonitor.getVisibility() == View.GONE) {
-					commMonitor.setVisibility(View.VISIBLE);
-					recSettings.setVisibility(View.VISIBLE);
-				} else {
-					commMonitor.setVisibility(View.GONE);
-					recSettings.setVisibility(View.GONE);
-				}
-			}
-		});
 
 		mMonButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -418,11 +420,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
 
 			if(btState.equalsIgnoreCase("disconnected")) {
+				mRecordingThread.stopRecording();
 				// turn off monitor if on
 				if (mViewModel.getMonState().getValue()) {
 					mViewModel.toggleMon();
 				}
-
+				connexLED.setColorFilter(Color.argb(255, 166, 51, 51));
+				mConnexState.setText("--");
 
 				final Handler handler = new Handler();
 				handler.postDelayed(new Runnable() {
@@ -437,10 +441,14 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 			} else { // connected
                 mConnButton.setText("DISCONNECT");
+				mConnexState.setText(btState.toUpperCase());
+				connexLED.setColorFilter(Color.GREEN);
+
 				if (mViewModel.getMonState().getValue()) {	// monitor on
 					vol_part.setAlpha(1.0f);
 					mVolDownButton.setEnabled(true);
 					mVolUpButton.setEnabled(true);
+					mRecordingThread.startRecording();
 				}
             }
 			Log.d(TAG, "Audio BT state: " + btState);
@@ -473,10 +481,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 
 		mViewModel.getMonState().observe(this, isOn -> {
-			mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
-			//if (mRecordingSamplerReady) {
+			//mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
 				if (isOn) 	{
-					mMonButton.setColorFilter(Color.GREEN);
+					monLED.setColorFilter(Color.GREEN);
+					mMonButton.setText(R.string.mon_state_off);
+
 					//mRecordingThread.startRecording();
 					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
 					} else {
@@ -488,15 +497,15 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					}
 				}
 				else {
-					mMonButton.setColorFilter(Color.argb(255, 10, 180, 10));
+					monLED.setColorFilter(Color.argb(255, 166, 51, 51));
+
+					mMonButton.setText(R.string.mon_state_on);
 					mRecordingThread.stopRecording();
 					vol_part.setAlpha(.5f);
 					mVolDownButton.setEnabled(false);
 					mVolUpButton.setEnabled(false);
 
 				}
-				//Log.i("recorder", "ready");
-			//}
 		});
 
 
@@ -505,6 +514,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			if (state == 0) {
 				mRecStateView.setText(R.string.rec_state_off);
 				this.manageBlinkEffect(false);
+//				mRecButton.setColorFilter(Color.argb(55, 0, 0, 0));
 				mRecButton.setColorFilter(Color.argb(255, 166, 51, 51));
 				//mRecStateView.setBackgroundColor(Color.WHITE);
 			}
@@ -532,17 +542,26 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mViewModel.getRecNumber().observe(this, recNumber -> {
 			Log.d(TAG, "Rec Number: " + recNumber);
 
-			mRecNumberView.setText(recNumber + " of " + mViewModel.getOccurence().getValue());
+			mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
 		});
 
 
-		mViewModel.getNextRecTime().observe(this, nextRectime -> {
-			Log.d(TAG, "Next Rec Time: " + nextRectime);
-			int nRecTime = Integer.parseInt(nextRectime);
-			long unixTime = System.currentTimeMillis() / 1000;
-			unixTime += getCurrentTimezoneOffset();		// add time zone offset
-			recTime = nRecTime - (int)unixTime;
-			Log.d(TAG, "Next Rec in: " + recTime + "s");
+		mViewModel.getNextRecTime().observe(this, nextRectimeString -> {
+			Log.d(TAG, "Next Rec Time: " + nextRectimeString);
+			int nRecTime = Integer.parseInt(nextRectimeString);
+			long now = System.currentTimeMillis() / 1000;
+			now += getCurrentTimezoneOffset();		// add time zone offset
+			nextRecTime = nRecTime - (int)now;
+
+			// convert seconds to milliseconds
+			Date date = new java.util.Date(nRecTime*1000L);
+			// the format of your date
+			SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm:ss");
+			// give a timezone reference for formatting (see comment at the bottom)
+			sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+			String formattedDate = sdf.format(date);
+			mRecTimeView.setText("NEXT RECORD AT: " + formattedDate);
+			Log.d(TAG, "Next Rec in: " + nextRecTime + "s / " + formattedDate);
 		});
 
 
@@ -558,21 +577,22 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					Log.d(TAG, "Rec Start time: " + inputTime);
 
 					SimpleDateFormat inputFormat = new SimpleDateFormat("yyMMdd/HHmmss");
-					Date date = null;
+					Date recStartDate = null;
 
 					try {
-						date = inputFormat.parse(inputTime);
+						recStartDate = inputFormat.parse(inputTime);
 					} catch (ParseException e) {
 					}
 
 					// get local time
-					long unixTime = System.currentTimeMillis();
-					long diff = unixTime - date.getTime();
-					Log.d(TAG, "Rec time difference: " + unixTime + " " + date.getTime() + " "  + diff);
+					long now = System.currentTimeMillis();
+					long diff = now - recStartDate.getTime();
+					Log.d(TAG, "Rec time difference: " + now + " - " + recStartDate.getTime() + " = "  + diff);
 
 					int dur;
 					try {
 						dur = Integer.parseInt(mViewModel.getDuration().getValue());
+						Log.d(TAG, "Rec Duration: " + dur);
 					}
 					catch (NumberFormatException e)
 					{
@@ -583,9 +603,9 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 						// not endless recording duration
 						// reset the count down
 						recTime = dur - (int)(diff / 1000);
-						Log.d(TAG, "Rec time: " + recTime);
+						Log.d(TAG, "remaining rec time: " + recTime);
 					} else {
-
+						recTime = 0;
 					}
 				}
 			}
@@ -640,23 +660,26 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 
 
-
 	@OnClick(R.id.action_clear_cache)
 	public void onTryAgainClicked() {
 		mViewModel.reconnect();
 	}
+
 
 	private void onConnectionStateChanged(final boolean connected) {
 		Log.d(TAG, "connex state changed: " + connected);
 		if (connected) {
 			mViewModel.requestDeviceStatus();
 
-			mConnectedView.setImageResource(R.drawable.icons8_connected_48);
-			mConnectedView.setColorFilter(Color.GREEN);
+			if(greenConnectIcon != null) {
+				connectItem.setIcon(greenConnectIcon);
+			}
+
 		}
 		else {
-			mConnectedView.setImageResource(R.drawable.icons8_disconnected_48);
-			mConnectedView.setColorFilter(Color.RED);
+			if(redConnectIcon != null) {
+				connectItem.setIcon(redConnectIcon);
+			}
 		}
 	}
 
@@ -678,40 +701,85 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 
 
-
-//	private void startPermissionsActivity() {
-//		PermissionsActivity.startActivityForResult(this, REQUEST_CODE, PERMISSIONS);
-//	}
-//
-//	@Override
-//	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//		super.onActivityResult(requestCode, resultCode, data);
-//		if (requestCode == REQUEST_CODE && resultCode == PermissionsActivity.PERMISSIONS_DENIED) {
-//			finish();
-//		}
-//	}
-
-
 	@Override
 	protected void onStop() {
 		super.onStop();
 
-		mRecordingThread.stopRecording();
+		//mRecordingThread.stopRecording();
 	}
 
 
 	@Override
 	protected void onPause() {
-		//mRecordingSampler.stopRecording();
 		super.onPause();
+		mRecordingThread.stopRecording();
 	}
 
 	@Override
 	protected void onDestroy() {
-		//mRecordingSampler.release();
 		mViewModel.disconnect();
 		super.onDestroy();
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+			mRecordingThread.startRecording();
+		}
 
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		MenuInflater menuInflater = getMenuInflater();
+		menuInflater.inflate(R.menu.main_menu, menu);
+
+		connectItem = menu.findItem(R.id.status);
+
+		greenConnectIcon = connectItem.getIcon();
+		greenConnectIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
+
+		redConnectIcon =
+				getApplicationContext().getResources().getDrawable(R.drawable.icons8_disconnected_48, getApplicationContext().getTheme());
+
+		redConnectIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
+
+
+		if(mViewModel.isConnected().getValue()) {
+			connectItem.setIcon(greenConnectIcon);
+		} else {
+			connectItem.setIcon(redConnectIcon);
+		}
+
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		super.onOptionsItemSelected(item);
+
+		switch (item.getItemId()) {
+			case R.id.settings:
+				if(recSettings.getVisibility() == View.GONE) {
+					recSettings.setVisibility(View.VISIBLE);
+				} else {
+					recSettings.setVisibility(View.GONE);
+				}
+
+				return true;
+			case  R.id.help:
+				return true;
+			case  R.id.monitor:
+				if(commMonitor.getVisibility() == View.GONE) {
+					commMonitor.setVisibility(View.VISIBLE);
+				} else {
+					commMonitor.setVisibility(View.GONE);
+				}
+				return true;
+			default:
+				return false;
+		}
+	}
 }

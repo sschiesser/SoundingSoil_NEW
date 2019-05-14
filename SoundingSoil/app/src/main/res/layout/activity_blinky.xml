@@ -33,6 +33,7 @@
 			type="ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel" />
 	</data>
 
+
 	<RelativeLayout
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
@@ -61,13 +62,6 @@
 					android:background="#000000"
 					app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-				<ImageView
-					android:id="@+id/connectedIV"
-					android:layout_width="30dp"
-					android:layout_height="match_parent"
-					android:layout_margin="8dp"
-					android:contentDescription="@null"
-					app:srcCompat="@drawable/icons8_connected_48" />
 			</LinearLayout>
 
 		</com.google.android.material.appbar.AppBarLayout>
@@ -183,19 +177,22 @@
 					android:layout_weight="1"
 					android:orientation="vertical">
 
-					<Button
-						android:id="@+id/status_req_button"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:insetTop="0dp"
-						android:insetBottom="0dp"
-						android:text="@string/status_request"
-						android:textSize="12sp" />
+                    <Button
+                        android:id="@+id/status_req_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/rectangle"
+                        android:backgroundTintMode="add"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="@string/status_request"
+                        android:textSize="12sp" />
 
 					<Button
 						android:id="@+id/clear_mon_button"
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
+						android:background="#4527A0"
 						android:insetTop="0dp"
 						android:insetBottom="0dp"
 						android:text="@string/clear"
@@ -218,7 +215,7 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:background="#00FFFFFF"
-					android:paddingTop="40dp"
+					android:paddingTop="30dp"
 					android:text="@string/rec_state_unknown"
 					android:textAlignment="center"
 					android:textColor="#FFFFFF"
@@ -231,53 +228,28 @@
 					android:adjustViewBounds="true"
 					android:background="#00FFFFFF"
 					android:contentDescription="@null"
-					android:padding="30dp"
+					android:padding="20dp"
 					android:scaleType="fitCenter"
 					android:src="@drawable/record"
 					android:tint="#FA4520" />
 
-                <LinearLayout
-                    android:id="@+id/rec_number_part"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:padding="2dp">
-
-                    <TextView
-                        android:id="@+id/rec_number_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/rec_number_label"
-                        android:textColor="#FFFFFF" />
-
-                    <TextView
-                        android:id="@+id/rec_number"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="0dp"
-                        android:textAlignment="center"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp" />
-                </LinearLayout>
-
-                <LinearLayout
-					android:id="@+id/rec_time_part"
+				<LinearLayout
+					android:id="@+id/rec_number_part"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:orientation="horizontal"
 					android:padding="2dp">
 
 					<TextView
-						android:id="@+id/rec_time_label"
+						android:id="@+id/rec_number_label"
 						android:layout_width="0dp"
 						android:layout_height="wrap_content"
 						android:layout_weight="1"
-						android:text="@string/rec_time_label"
+						android:text="@string/rec_number_label"
 						android:textColor="#FFFFFF" />
 
 					<TextView
-						android:id="@+id/rec_time"
+						android:id="@+id/rec_number"
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
 						android:padding="0dp"
@@ -285,6 +257,16 @@
 						android:textColor="#FFFFFF"
 						android:textSize="14sp" />
 				</LinearLayout>
+
+
+				<TextView
+					android:id="@+id/rec_time"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:padding="2dp"
+					android:textAlignment="center"
+					android:textColor="#FFFFFF"
+					android:textSize="14sp" />
 
 				<LinearLayout
 					android:id="@+id/file_path_part"
@@ -321,13 +303,15 @@
 				android:layout_height="0dp"
 				android:layout_weight="1"
 				android:background="#000000"
+				android:paddingTop="4dp"
+				android:paddingBottom="4dp"
 				app:mode="RECORDING" />
 
 
 			<LinearLayout
 				android:id="@+id/monitor_part"
 				android:layout_width="match_parent"
-				android:layout_height="100dp"
+				android:layout_height="80dp"
 				android:baselineAligned="false"
 				android:gravity="bottom|center_vertical"
 				android:orientation="horizontal">
@@ -339,30 +323,58 @@
 					android:layout_weight="1"
 					android:orientation="vertical">
 
-					<TextView
-						android:id="@+id/mon_state"
+					<LinearLayout
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
-						android:layout_gravity="center"
-						android:layout_margin="2dp"
-						android:maxLines="1"
-						android:text="@string/rec_state_unknown"
-						android:textAlignment="center"
-						android:textColor="#FFFFFF"
-						android:textSize="14sp" />
+						android:gravity="center_horizontal"
+						android:orientation="horizontal">
 
-					<ImageButton
+						<TextView
+							android:id="@+id/mon_state"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_margin="2dp"
+							android:layout_weight="1"
+							android:maxLines="1"
+							android:paddingLeft="4dp"
+							android:paddingRight="4dp"
+							android:text="@string/monitor"
+							android:textAlignment="viewStart"
+							android:textColor="#FFFFFF"
+							android:textSize="14sp" />
+
+						<ImageView
+							android:id="@+id/mon_state_led"
+							android:layout_width="22dp"
+							android:layout_height="22dp"
+							android:layout_marginTop="1dp"
+							android:padding="6dp"
+							android:tint="#00FF00"
+							app:srcCompat="@drawable/record" />
+					</LinearLayout>
+
+					<Button
 						android:id="@+id/mon_button"
+						style="@android:style/Widget.Button"
 						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
+						android:layout_height="match_parent"
 						android:layout_margin="2dp"
-						android:adjustViewBounds="true"
-						android:background="#FFFFFF"
+						android:backgroundTint="#FFFFFF"
 						android:contentDescription="@null"
-						android:cropToPadding="true"
-						android:scaleType="fitCenter"
-						android:src="@drawable/icons8_play_96"
-						android:tint="#0CC00C" />
+						android:fontFamily="sans-serif"
+						android:insetTop="0dp"
+						android:insetBottom="0dp"
+						android:letterSpacing="0.05"
+						android:maxLines="1"
+						android:paddingLeft="0dp"
+						android:paddingRight="0dp"
+						android:text="@string/mon_state_off"
+						android:textColor="#000000"
+						app:cornerRadius="0dp"
+						app:strokeColor="@color/white"
+						app:strokeWidth="1dp" />
+
+
 				</LinearLayout>
 
 				<LinearLayout
@@ -372,77 +384,113 @@
 					android:layout_weight="1"
 					android:orientation="vertical">
 
-					<TextView
-						android:id="@+id/connex_state"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:layout_margin="2dp"
-						android:maxLines="1"
-						android:text="@{viewmodel.BTStateChanged}"
-						android:textAlignment="center"
-						android:textColor="#FFFFFF"
-						android:textSize="14sp" />
-
-					<Button
-						android:id="@+id/conn_button"
-						android:layout_width="match_parent"
-						android:layout_height="0dp"
-						android:layout_margin="2dp"
-						android:layout_weight="1"
-						android:backgroundTint="#FFFFFF"
-						android:fontFamily="sans-serif"
-						android:insetTop="0dp"
-						android:insetBottom="0dp"
-						android:maxLines="1"
-						android:minWidth="0dp"
-						android:padding="0dp"
-						android:paddingLeft="0dp"
-						android:paddingRight="0dp"
-						android:text="@string/connect_audio"
-						android:textColor="#000000"
-						app:cornerRadius="0dp"
-						app:iconPadding="0dp" />
-				</LinearLayout>
-
-				<LinearLayout
-					android:id="@+id/vol_control_part"
-					android:layout_width="0dp"
-					android:layout_height="match_parent"
-					android:layout_weight="1.4"
-					android:orientation="vertical">
-
 					<LinearLayout
-						android:id="@+id/vol_level_display"
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
-						android:layout_margin="2dp"
-						android:gravity="center_horizontal"
 						android:orientation="horizontal">
-
-
-						<ProgressBar
-							android:id="@+id/volumeBar"
-							style="?android:attr/progressBarStyleHorizontal"
-							android:layout_width="0dp"
-							android:layout_height="match_parent"
-							android:layout_margin="2dp"
-							android:layout_weight="1"
-							android:progressTint="#FFFFFF" />
 
 						<TextView
-							android:id="@+id/vol_text"
+							android:id="@+id/connex_state_label"
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="@{viewmodel.volume}"
-							android:textAlignment="center"
-							android:textColor="#FFFFFF" />
+							android:layout_margin="2dp"
+							android:layout_marginTop="2dp"
+							android:layout_marginBottom="2dp"
+							android:maxLines="1"
+							android:paddingLeft="2dp"
+							android:paddingRight="2dp"
+							android:text="@string/bt"
+							android:textAlignment="viewStart"
+							android:textColor="#FFFFFF"
+							android:textSize="14sp" />
+
+						<TextView
+							android:id="@+id/connex_state"
+							android:layout_width="0dp"
+							android:layout_height="wrap_content"
+							android:layout_marginTop="2dp"
+							android:layout_marginBottom="2dp"
+							android:layout_weight="1"
+							android:maxLines="1"
+							android:paddingLeft="2dp"
+							android:paddingRight="2dp"
+							android:textAlignment="viewStart"
+							android:textColor="#FFFFFF"
+							android:textSize="14sp" />
+
+						<ImageView
+							android:id="@+id/connex_state_led"
+							android:layout_width="22dp"
+							android:layout_height="22dp"
+							android:layout_marginTop="1dp"
+							android:padding="6dp"
+							android:tint="#00FF00"
+							app:srcCompat="@drawable/record" />
 					</LinearLayout>
 
-					<LinearLayout
-						android:id="@+id/vol_up_down"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:orientation="horizontal">
+					<Button
+                        android:id="@+id/conn_button"
+                        style="@android:style/Widget.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="2dp"
+                        android:backgroundTint="#FFFFFF"
+                        android:fontFamily="sans-serif"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:letterSpacing="0.05"
+                        android:maxLines="1"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:text="@string/connect_audio"
+                        android:textColor="#000000"
+                        app:cornerRadius="0dp"
+                        app:strokeColor="@color/white"
+                        app:strokeWidth="1dp" />
+				</LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/vol_control_part"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/vol_level_display"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="horizontal">
+
+
+                        <ProgressBar
+                            android:id="@+id/volumeBar"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_margin="2dp"
+                            android:layout_weight="1"
+                            android:progressTint="#FFFFFF" />
+
+                        <TextView
+                            android:id="@+id/vol_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:gravity="center"
+                            android:paddingLeft="2dp"
+                            android:paddingRight="2dp"
+                            android:text="@{viewmodel.volume}"
+                            android:textAlignment="center"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/vol_up_down"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
 						<ImageButton
 							android:id="@+id/vol_down_button"
@@ -452,11 +500,10 @@
 							android:layout_weight="1"
 							android:adjustViewBounds="false"
 							android:background="#FFFFFF"
+							android:backgroundTint="#FFFFFF"
 							android:contentDescription="@null"
 							android:cropToPadding="true"
-							android:padding="8dp"
 							android:scaleType="fitCenter"
-							android:tint="#000000"
 							app:srcCompat="@drawable/icons8_low_volume_filled_50" />
 
 						<ImageButton
@@ -467,15 +514,14 @@
 							android:layout_weight="1"
 							android:adjustViewBounds="false"
 							android:background="#FFFFFF"
+							android:backgroundTint="#FFFFFF"
 							android:contentDescription="@null"
 							android:cropToPadding="true"
-							android:padding="8dp"
 							android:scaleType="fitCenter"
-							android:tint="#000000"
 							app:srcCompat="@drawable/icons8_speaker_filled_50" />
-					</LinearLayout>
+                    </LinearLayout>
 
-				</LinearLayout>
+                </LinearLayout>
 
 			</LinearLayout>
 
