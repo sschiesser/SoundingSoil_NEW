@@ -57,6 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="#484848"
-        android:text="@string/scanner_action_cancel" />
+        android:text="@string/scanner_action_cancel"
+        app:cornerRadius="0dp" />
 
 </LinearLayout>

@@ -25,6 +25,7 @@ package ch.kentai.android.soundingsoil;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
@@ -444,6 +445,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				mConnexState.setText(btState.toUpperCase());
 				connexLED.setColorFilter(Color.GREEN);
 
+				dismissDeviceScanningDialog();
+
 				if (mViewModel.getMonState().getValue()) {	// monitor on
 					vol_part.setAlpha(1.0f);
 					mVolDownButton.setEnabled(true);
@@ -694,9 +697,19 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			anim.end();
 		}
 	}
+
 	private void showDeviceScanningDialog() {
 		final ScannerFragment dialog = ScannerFragment.getInstance(); // Device that is advertising directly does not have the GENERAL_DISCOVERABLE nor LIMITED_DISCOVERABLE flag set.
 		dialog.show(getSupportFragmentManager(), "scan_fragment");
+	}
+
+	private void dismissDeviceScanningDialog() {
+
+		Fragment prev = getSupportFragmentManager().findFragmentByTag("scan_fragment");
+		if (prev != null) {
+			ScannerFragment df = (ScannerFragment) prev;
+			df.dismiss();
+		}
 	}
 
 
