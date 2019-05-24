@@ -194,7 +194,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 		mDataSentReceived.setValue(new ArrayList<String>());
 		mMonState.setValue(false);
-		duration.setValue("11");
+		duration.setValue("300");
 		mBTStateChanged.postValue("DISCONNECTED");
 		mConnectionState.setValue("");
 		mRecNumber.setValue(0);

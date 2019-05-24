@@ -21,7 +21,7 @@
   -->
 
 <resources>
-    <string name="app_name">Sounding Soil</string>
+    <string name="app_name">SOUNDING SOIL</string>
     <string name="feature_name">BLINKY</string>
 
     <string name="title">@string/app_name</string>
@@ -76,7 +76,7 @@
 
     <string name="duration_title">Duration (s)</string>
     <string name="period_title">Period (s)</string>
-    <string name="occurence_title">Occurence (s)</string>
+    <string name="occurence_title">Occurence (nbr)</string>
 
     <string name="rec_state_off">RECORDING STOPPED</string>
     <string name="rec_state_wait">REC WAITING...</string>

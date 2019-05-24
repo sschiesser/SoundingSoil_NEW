@@ -113,22 +113,24 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
 		getMenuInflater().inflate(R.menu.filter, menu);
-		menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
-		menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
+		//menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
+		//menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.filter_uuid:
-				item.setChecked(!item.isChecked());
-				mScannerViewModel.filterByUuid(item.isChecked());
+			case R.id.help:
 				return true;
-			case R.id.filter_nearby:
-				item.setChecked(!item.isChecked());
-				mScannerViewModel.filterByDistance(item.isChecked());
-				return true;
+//			case R.id.filter_uuid:
+//				item.setChecked(!item.isChecked());
+//				mScannerViewModel.filterByUuid(item.isChecked());
+//				return true;
+//			case R.id.filter_nearby:
+//				item.setChecked(!item.isChecked());
+//				mScannerViewModel.filterByDistance(item.isChecked());
+//				return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -239,10 +241,11 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 			mNoBluetoothView.setVisibility(View.GONE);
 			mScanningView.setVisibility(View.INVISIBLE);
 			mEmptyView.setVisibility(View.GONE);
+			mGrantPermissionButton.setVisibility(View.VISIBLE);
 
 			final boolean deniedForever = Utils.isLocationPermissionDeniedForever(this);
-			mGrantPermissionButton.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
-			mPermissionSettingsButton.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
+			//mGrantPermissionButton.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
+			//mPermissionSettingsButton.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
 		}
 	}
 

@@ -24,13 +24,16 @@ package ch.kentai.android.soundingsoil;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
@@ -57,11 +60,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -152,6 +157,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	private  int nextRecTime = 0;
 	private int recState = 0;
 
+	private boolean recSettingsEditable = false;
+
 	MenuItem connectItem;
 
 	Drawable redConnectIcon;
@@ -232,8 +239,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					public void run() {
 						if (recState == 1) {
 							// waiting: display next rec time
-						} else {
+						} else if (recState == 2) {
 							mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
+						} else {
+							// state stopped
+							mRecTimeView.setText("--");
 						}
 					}
 				});
@@ -271,7 +281,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mDurationField.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
 			}
 
 			@Override
@@ -459,7 +468,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		mViewModel.isDeviceReady().observe(this, deviceReady -> {
 			progressContainer.setVisibility(View.GONE);
-			content.setVisibility(View.VISIBLE);
+			//content.setVisibility(View.VISIBLE);
 			mViewModel.requestDeviceStatus();
 			Log.d(TAG, "device ready: " + deviceReady);
 		});
@@ -545,7 +554,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mViewModel.getRecNumber().observe(this, recNumber -> {
 			Log.d(TAG, "Rec Number: " + recNumber);
 
-			mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
+			if (recState == 0) {
+				mRecNumberView.setText(" --");
+			} else {
+				mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
+			}
 		});
 
 
@@ -645,9 +658,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 166, 51, 51), Color.argb(255, 250, 69, 32));
 
-//		anim = ObjectAnimator.ofInt(mRecStateView, "backgroundColor", Color.WHITE, Color.RED,
-//				Color.WHITE);
-
 	}
 
 
@@ -668,11 +678,26 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mViewModel.reconnect();
 	}
 
+	public static void enableDisableViewGroup(ViewGroup viewGroup, boolean enabled) {
+		int childCount = viewGroup.getChildCount();
+		for (int i = 0; i < childCount; i++) {
+			View view = viewGroup.getChildAt(i);
+			view.setEnabled(enabled);
+			if (view instanceof ViewGroup) {
+				enableDisableViewGroup((ViewGroup) view, enabled);
+			}
+		}
+	}
+
+
 
 	private void onConnectionStateChanged(final boolean connected) {
 		Log.d(TAG, "connex state changed: " + connected);
+		final View content = findViewById(R.id.device_container);
 		if (connected) {
 			mViewModel.requestDeviceStatus();
+			content.setAlpha(1);
+			enableDisableViewGroup((ViewGroup) content, true);
 
 			if(greenConnectIcon != null) {
 				connectItem.setIcon(greenConnectIcon);
@@ -680,6 +705,9 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		}
 		else {
+			content.setAlpha(0.4f);
+			enableDisableViewGroup((ViewGroup) content, false);
+
 			if(redConnectIcon != null) {
 				connectItem.setIcon(redConnectIcon);
 			}
@@ -776,17 +804,23 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		switch (item.getItemId()) {
 			case R.id.settings:
 				if(recSettings.getVisibility() == View.GONE) {
-					recSettings.setVisibility(View.VISIBLE);
+					showAlertDialogChangeRecordSettings();
 				} else {
 					recSettings.setVisibility(View.GONE);
+                    hideKeyboard(this);
 				}
 
 				return true;
 			case  R.id.help:
+				commMonitor.setVisibility(View.GONE);
+				recSettings.setVisibility(View.GONE);
+				hideKeyboard(this);
 				return true;
 			case  R.id.monitor:
 				if(commMonitor.getVisibility() == View.GONE) {
 					commMonitor.setVisibility(View.VISIBLE);
+					recSettings.setVisibility(View.GONE);
+					hideKeyboard(this);
 				} else {
 					commMonitor.setVisibility(View.GONE);
 				}
@@ -795,4 +829,39 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				return false;
 		}
 	}
+
+	public static void hideKeyboard(Activity activity) {
+		if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
+			InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
+		}
+	}
+
+
+	public void showAlertDialogChangeRecordSettings() {
+		// setup the alert builder
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("CHANGE RECORD SETTINGS");
+		builder.setMessage("Do you really want to change the record settings?");
+		// add the buttons
+		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				recSettingsEditable = true;
+				recSettings.setVisibility(View.VISIBLE);
+				commMonitor.setVisibility(View.GONE);
+			}
+		});
+		builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				recSettingsEditable = false;
+			}
+		});
+		// create and show the alert dialog
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+
+
 }

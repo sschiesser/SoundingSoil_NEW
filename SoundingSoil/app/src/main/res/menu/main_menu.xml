@@ -9,14 +9,14 @@
         app:showAsAction="always" />
 
     <item
-        android:title="SETTINGS"
-        android:id="@+id/settings" />
-
-    <item
         android:title="HELP"
         android:id="@+id/help"/>
 
     <item
-        android:title="MONITOR"
+        android:title="SETTINGS"
+        android:id="@+id/settings" />
+
+    <item
+        android:title="TERMINAL"
         android:id="@+id/monitor"/>
 </menu>
