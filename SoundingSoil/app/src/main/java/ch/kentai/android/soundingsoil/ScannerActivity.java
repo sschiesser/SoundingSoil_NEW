@@ -23,6 +23,8 @@
 package ch.kentai.android.soundingsoil;
 
 import android.Manifest;
+
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
@@ -73,6 +75,7 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 	@BindView(R.id.action_permission_settings) Button mPermissionSettingsButton;
 	@BindView(R.id.no_location)	View mNoLocationView;
 	@BindView(R.id.bluetooth_off) View mNoBluetoothView;
+	@BindView(R.id.help) View mHelp;
 
 	@Override
 	protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -115,6 +118,9 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 		getMenuInflater().inflate(R.menu.filter, menu);
 		//menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
 		//menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
+
+
+
 		return true;
 	}
 
@@ -122,6 +128,13 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 	public boolean onOptionsItemSelected(final MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.help:
+				mHelp.setVisibility(View.VISIBLE);
+				mHelp.bringToFront();
+				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
+				transaction.addToBackStack("help_fragment");
+				transaction.commit();
+
 				return true;
 //			case R.id.filter_uuid:
 //				item.setChecked(!item.isChecked());

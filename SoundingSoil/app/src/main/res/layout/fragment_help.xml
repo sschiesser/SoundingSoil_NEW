@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context=".HelpFragment">
+
+
+    <ImageView
+        android:id="@+id/pdf_image"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/white"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
+
+    <LinearLayout
+        android:id="@+id/nav_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_previous"
+            style="@android:style/Widget.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="sans-serif"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0.05"
+            android:maxLines="1"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="@string/previous"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            app:cornerRadius="0dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
+
+        <Button
+            android:id="@+id/btn_next"
+            style="@android:style/Widget.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="2dp"
+            android:layout_weight="1"
+            android:backgroundTint="#FFFFFF"
+            android:fontFamily="sans-serif"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:letterSpacing="0.05"
+            android:maxLines="1"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="@string/next"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            app:cornerRadius="0dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/close"
+        style="@android:style/Widget.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:backgroundTint="#FFFFFF"
+        android:fontFamily="sans-serif"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:letterSpacing="0.05"
+        android:maxLines="1"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        android:text="@string/close"
+        android:textColor="#000000"
+        app:cornerRadius="0dp"
+        app:strokeColor="@color/white"
+        app:strokeWidth="1dp" />
+
+
+</LinearLayout>

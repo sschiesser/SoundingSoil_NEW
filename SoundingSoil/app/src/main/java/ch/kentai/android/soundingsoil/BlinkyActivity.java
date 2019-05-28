@@ -27,11 +27,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+//import android.app.FragmentManager;
+//import android.support.v4.app.FragmentManager;
+//import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -97,11 +101,12 @@ import ch.kentai.android.soundingsoil.scanner.SimpleBluetoothDevice;
 import ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel;
 import ch.kentai.android.soundingsoil.scanner.ScannerFragment;
 import ch.kentai.android.soundingsoil.utils.RepeatListener;
+import ch.kentai.android.soundingsoil.HelpFragment;
 
 import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurrentTimezoneOffset;
 
 @SuppressWarnings("ConstantConditions")
-public class BlinkyActivity extends AppCompatActivity implements ScannerFragment.OnDeviceSelectedListener {
+public class BlinkyActivity extends AppCompatActivity implements ScannerFragment.OnDeviceSelectedListener, HelpFragment.OnFragmentInteractionListener {
 
 	private WaveformView mRealtimeWaveformView;
 	private RecordingThread mRecordingThread;
@@ -145,6 +150,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@BindView(R.id.mon_state_led) ImageView monLED;
 	@BindView(R.id.connex_state_led) ImageView connexLED;
+	@BindView(R.id.help) View mHelp;
 
     private ObjectAnimator anim;
 	private static final String TAG = "BlinkyActivity";
@@ -815,9 +821,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				commMonitor.setVisibility(View.GONE);
 				recSettings.setVisibility(View.GONE);
 				hideKeyboard(this);
+				mHelp.setVisibility(View.VISIBLE);
+				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+				transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
+				transaction.addToBackStack("help_fragment");
+				transaction.commit();
+
 				return true;
 			case  R.id.monitor:
 				if(commMonitor.getVisibility() == View.GONE) {
+					closeHelpFragment();
 					commMonitor.setVisibility(View.VISIBLE);
 					recSettings.setVisibility(View.GONE);
 					hideKeyboard(this);
@@ -842,11 +855,12 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		// setup the alert builder
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("CHANGE RECORD SETTINGS");
-		builder.setMessage("Do you really want to change the record settings?");
+		builder.setMessage("Do you really want to change the record settings?\n\nThe default values are 500 / 3600 / 24");
 		// add the buttons
 		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				closeHelpFragment();
 				recSettingsEditable = true;
 				recSettings.setVisibility(View.VISIBLE);
 				commMonitor.setVisibility(View.GONE);
@@ -861,6 +875,31 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		// create and show the alert dialog
 		AlertDialog dialog = builder.create();
 		dialog.show();
+	}
+
+
+	public void onFragmentInteraction(int count) {
+
+	}
+
+
+	@Override
+	public void onBackPressed() {
+		if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+			getSupportFragmentManager().popBackStack();
+			mHelp.setVisibility(View.GONE);
+			//getSupportFragmentManager().findFragmentByTag("help_fragment");
+
+		} else {
+			super.onBackPressed();
+		}
+	}
+
+	private void closeHelpFragment() {
+		if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+			getSupportFragmentManager().popBackStack();
+			mHelp.setVisibility(View.GONE);
+		}
 	}
 
 

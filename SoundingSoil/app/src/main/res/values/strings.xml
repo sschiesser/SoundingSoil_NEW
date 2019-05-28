@@ -108,6 +108,10 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="not_available">n/a</string>
+    <string name="close">CLOSE</string>
+
+    <string name="previous">PREVIOUS</string>
+    <string name="next">NEXT</string>
 
 
 </resources>
