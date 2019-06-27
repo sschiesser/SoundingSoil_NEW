@@ -41,6 +41,9 @@
     <string name="button_unknown">UNKNOWN</string>
     <string name="led_summary">Toggle the switch to turn the LED 3 on or off.</string>
 
+    <string name="location_turnon_title">LOCATION MUST BE TURNED ON</string>
+    <string name="location_turnon_info">The application requires location services to be turned on. Please turn it on in the settings</string>
+
     <string name="location_permission_title">LOCATION PERMISSION REQUIRED</string>
     <string name="location_permission_info">From Android 6.0 Marshmallow onwards the application requires Location permission in order to scan for Bluetooth Low Energy devices.
       \n\nThis is because Bluetooth LE may be used to determine the phone\'s and user\'s location. <b>Sounding Soil</b> will not use this information in any way.</string>
@@ -71,8 +74,8 @@
     <string name="state_disconnected">DISCONNECTED</string>
     <string name="title_mon">Mon</string>
 
-    <string name="status_request">status &#10; request</string>
-    <string name="clear">clear</string>
+    <string name="status_request">STATUS &#10; REQUEST</string>
+    <string name="clear">CLEAR</string>
 
     <string name="duration_title">Duration (s)</string>
     <string name="period_title">Period (s)</string>
@@ -112,6 +115,7 @@
 
     <string name="previous">PREVIOUS</string>
     <string name="next">NEXT</string>
+    <string name="reset">RESET</string>
 
 
 </resources>

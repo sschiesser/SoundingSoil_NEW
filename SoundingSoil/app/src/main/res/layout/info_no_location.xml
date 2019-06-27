@@ -37,41 +37,29 @@
 		android:layout_height="wrap_content"
 		android:layout_gravity="center_horizontal"
 		android:padding="@dimen/activity_horizontal_margin"
-		app:srcCompat="@drawable/ic_bluetooth_searching"/>
+		app:srcCompat="@drawable/ic_location_off"/>
 
 	<TextView
 		style="@style/Widget.ScannerSubtitle"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:gravity="center_horizontal"
-		android:text="@string/blinky_guide_title" />
+		android:text="@string/location_turnon_title" />
 
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="@dimen/activity_vertical_margin"
-		android:text="@string/blinky_guide_info"/>
+		android:layout_marginBottom="@dimen/activity_vertical_margin"
+		android:text="@string/location_turnon_info" />
 
-	<LinearLayout
-		android:id="@+id/no_location"
-		android:layout_width="match_parent"
+	<Button
+		android:id="@+id/action_location_settings"
+		style="@style/Widget.MaterialComponents.Button"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:orientation="vertical"
-		android:visibility="invisible"
-		tools:visibility="visible">
-
-		<TextView
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="@dimen/activity_vertical_margin"
-			android:text="@string/blinky_guide_location_info" />
-
-		<Button
-			android:id="@+id/action_enable_location"
-			style="@style/Widget.MaterialComponents.Button"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_gravity="center_horizontal"
-			android:text="@string/blinky_guide_location_action" />
-	</LinearLayout>
+		android:layout_gravity="center_horizontal"
+		android:text="@string/location_permission_settings"
+		android:visibility="visible"
+		tools:visibility="visible" />
 </LinearLayout>

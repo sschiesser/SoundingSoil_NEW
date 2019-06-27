@@ -136,14 +136,20 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@BindView(R.id.status_req_button) Button mStatusReqButton;
 	@BindView(R.id.clear_mon_button) Button mClearButton;
+	@BindView(R.id.close_mon_button) Button mCloseButton;
 
-	@BindView(R.id.conn_button) Button mConnButton;
+    @BindView(R.id.conn_button) Button mConnButton;
+	@BindView(R.id.rec_settings_reset_button) Button mSettingsResetButton;
+	@BindView(R.id.rec_settings_close_button) Button mSettingsCloseButton;
+
 
     @BindView(R.id.mon_button_part) LinearLayout mon_part;
     @BindView(R.id.vol_control_part) LinearLayout vol_part;
 
 	@BindView(R.id.rec_time) TextView mRecTimeView;
 	@BindView(R.id.rec_number) TextView mRecNumberView;
+	@BindView(R.id.rec_number_part) LinearLayout mRecNumberPart;
+	@BindView(R.id.file_path_part) LinearLayout mFilePathPart;
 
 	@BindView(R.id.comm_log) LinearLayout commMonitor;
 	@BindView(R.id.rec_settings) LinearLayout recSettings;
@@ -165,10 +171,15 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	private boolean recSettingsEditable = false;
 
+	private String mLatitude;
+	private String mLongitude;
+
 	MenuItem connectItem;
 
 	Drawable redConnectIcon;
 	Drawable greenConnectIcon;
+
+
 
 
 	@Override
@@ -373,9 +384,17 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
                         double longitude = location.getLongitude();
                         double latitude = location.getLatitude();
 
-                        mViewModel.setLatitude(String.format("%.4f", latitude));
-                        mViewModel.setLongitude(String.format("%.4f", longitude));
-                    }
+                        mLatitude = String.format("%.4f", latitude);
+                        mLongitude = String.format("%.4f", longitude);
+
+                        mViewModel.setLatitude(mLatitude);
+                        mViewModel.setLongitude(mLongitude);
+                    } else {
+                    	// check if no latlong at all
+						if (mLatitude == "" || mLongitude == "") {
+							showAlertDialogNoLocation();
+						}
+					}
                 }
 				mViewModel.toggleRec();
 			}
@@ -396,6 +415,31 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				mViewModel.clearDataSentReceived();
 			}
 		});
+
+
+        mCloseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                commMonitor.setVisibility(View.GONE);
+            }
+        });
+
+		mSettingsResetButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mDurationField.setText("300");
+				mPeriodField.setText("3600");
+				mOccurenceField.setText("24");
+				mViewModel.sendRwinParams();
+			}
+		});
+
+		mSettingsCloseButton.setOnClickListener((v -> {
+
+				recSettings.setVisibility(View.GONE);
+				hideKeyboard(this);
+
+		}));
 
 
 		mVolUpButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
@@ -535,19 +579,25 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 //				mRecButton.setColorFilter(Color.argb(55, 0, 0, 0));
 				mRecButton.setColorFilter(Color.argb(255, 166, 51, 51));
 				//mRecStateView.setBackgroundColor(Color.WHITE);
+				mRecNumberPart.setVisibility(View.GONE);
+				mFilePathPart.setVisibility(View.GONE);
+				mRecTimeView.setVisibility(View.GONE);
 			}
 			else if (state == 1) {
 				mRecStateView.setText(R.string.rec_state_wait);
 				this.manageBlinkEffect(true);
 				// request time of next record to set wait countdown timer
-
-
+				mRecNumberPart.setVisibility(View.GONE);
+				mFilePathPart.setVisibility(View.GONE);
 			}
 			else if(state == 2) {
 				mRecStateView.setText(R.string.rec_state_on);
 				this.manageBlinkEffect(false);
 				//mRecStateView.setBackgroundColor(Color.RED);
 				mRecButton.setColorFilter(Color.argb(255, 250, 69, 32));
+				mRecNumberPart.setVisibility(View.VISIBLE);
+				mFilePathPart.setVisibility(View.VISIBLE);
+				mRecTimeView.setVisibility(View.VISIBLE);
 			}
 			else if(state == 3) {
 				mRecStateView.setText(R.string.rec_state_preparing);
@@ -559,12 +609,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		mViewModel.getRecNumber().observe(this, recNumber -> {
 			Log.d(TAG, "Rec Number: " + recNumber);
-
-			if (recState == 0) {
-				mRecNumberView.setText(" --");
-			} else {
-				mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
-			}
+			mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
 		});
 
 
@@ -645,6 +690,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
+
+		mViewModel.getLatitude().observe(this, string
+				-> {
+			mLatitude = string;
+		});
+
+		mViewModel.getLongitude().observe(this, string
+				-> {
+			mLongitude = string;
+		});
 
 		mViewModel.getDataReceived().observe(this, string
 				-> {
@@ -870,6 +925,22 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				recSettingsEditable = false;
+			}
+		});
+		// create and show the alert dialog
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+
+	public void showAlertDialogNoLocation() {
+		// setup the alert builder
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("NO LOCATION DETERMINED");
+		builder.setMessage("The location couldn't be determined\n\nPlease note the location by yourself");
+		// add the buttons
+		builder.setNegativeButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
 			}
 		});
 		// create and show the alert dialog

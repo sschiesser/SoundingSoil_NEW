@@ -26,11 +26,15 @@ import android.Manifest;
 
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
+
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -41,6 +45,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.appcompat.widget.Toolbar;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,81 +66,93 @@ import ch.kentai.android.soundingsoil.viewmodels.ScannerStateLiveData;
 import ch.kentai.android.soundingsoil.viewmodels.ScannerViewModel;
 
 public class ScannerActivity extends AppCompatActivity implements DevicesAdapter.OnItemClickListener {
-	private static final int REQUEST_ACCESS_COARSE_LOCATION = 1022; // random number
-	private static final int REQUEST_ACCESS_FINE_LOCATION = 1023; // random number
-	private static final int REQUEST_RECORD_AUDIO = 1024; // random number
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1022; // random number
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 1023; // random number
+    private static final int REQUEST_RECORD_AUDIO = 1024; // random number
 
-	private ScannerViewModel mScannerViewModel;
+    private ScannerViewModel mScannerViewModel;
 
-	@BindView(R.id.state_scanning) View mScanningView;
-	@BindView(R.id.no_devices)View mEmptyView;
-	@BindView(R.id.no_location_permission) View mNoLocationPermissionView;
-	@BindView(R.id.no_audio_permission) View mNoAudioPermissionView;
-	@BindView(R.id.action_grant_location_permission) Button mGrantPermissionButton;
-	@BindView(R.id.action_permission_settings) Button mPermissionSettingsButton;
-	@BindView(R.id.no_location)	View mNoLocationView;
-	@BindView(R.id.bluetooth_off) View mNoBluetoothView;
-	@BindView(R.id.help) View mHelp;
+    @BindView(R.id.state_scanning)
+    View mScanningView;
+    @BindView(R.id.no_devices)
+    View mEmptyView;
+    @BindView(R.id.no_location_permission)
+    View mNoLocationPermissionView;
+    @BindView(R.id.no_audio_permission)
+    View mNoAudioPermissionView;
+    @BindView(R.id.action_grant_location_permission)
+    Button mGrantPermissionButton;
+    @BindView(R.id.action_permission_settings)
+    Button mPermissionSettingsButton;
+    @BindView(R.id.action_location_settings)
+    Button mLocationSettingsButton;
+    @BindView(R.id.no_location)
+    View mNoLocationView;
+    @BindView(R.id.no_location_enabled)
+    View mNoLocationEnabledView;
+    @BindView(R.id.bluetooth_off)
+    View mNoBluetoothView;
+    @BindView(R.id.help)
+    View mHelp;
 
-	@Override
-	protected void onCreate(@Nullable final Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_scanner);
-		ButterKnife.bind(this);
+    @Override
+    protected void onCreate(@Nullable final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_scanner);
+        ButterKnife.bind(this);
 
-		final Toolbar toolbar = findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
-		getSupportActionBar().setTitle(R.string.app_name);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(R.string.app_name);
 
-		// Create view model containing utility methods for scanning
-		mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
-		mScannerViewModel.getScannerState().observe(this, this::startScan);
+        // Create view model containing utility methods for scanning
+        mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
+        mScannerViewModel.getScannerState().observe(this, this::startScan);
 
-		// Configure the recycler view
-		final RecyclerView recyclerView = findViewById(R.id.recycler_view_ble_devices);
-		recyclerView.setLayoutManager(new LinearLayoutManager(this));
-		recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
-		final DevicesAdapter adapter = new DevicesAdapter(this, mScannerViewModel.getDevices());
-		adapter.setOnItemClickListener(this);
-		recyclerView.setAdapter(adapter);
-	}
+        // Configure the recycler view
+        final RecyclerView recyclerView = findViewById(R.id.recycler_view_ble_devices);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+        final DevicesAdapter adapter = new DevicesAdapter(this, mScannerViewModel.getDevices());
+        adapter.setOnItemClickListener(this);
+        recyclerView.setAdapter(adapter);
+    }
 
-	@Override
-	protected void onRestart() {
-		super.onRestart();
-		clear();
-	}
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        clear();
+    }
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-		stopScan();
-	}
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopScan();
+    }
 
-	@Override
-	public boolean onCreateOptionsMenu(final Menu menu) {
-		getMenuInflater().inflate(R.menu.filter, menu);
-		//menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
-		//menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.filter, menu);
+        //menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
+        //menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
 
 
+        return true;
+    }
 
-		return true;
-	}
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help:
+                mHelp.setVisibility(View.VISIBLE);
+                mHelp.bringToFront();
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
+                transaction.addToBackStack("help_fragment");
+                transaction.commit();
 
-	@Override
-	public boolean onOptionsItemSelected(final MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.help:
-				mHelp.setVisibility(View.VISIBLE);
-				mHelp.bringToFront();
-				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-				transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
-				transaction.addToBackStack("help_fragment");
-				transaction.commit();
-
-				return true;
+                return true;
 //			case R.id.filter_uuid:
 //				item.setChecked(!item.isChecked());
 //				mScannerViewModel.filterByUuid(item.isChecked());
@@ -144,136 +161,169 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
 //				item.setChecked(!item.isChecked());
 //				mScannerViewModel.filterByDistance(item.isChecked());
 //				return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-	@Override
-	public void onItemClick(@NonNull final DiscoveredBluetoothDevice device) {
-		final Intent controlBlinkIntent = new Intent(this, BlinkyActivity.class);
-		controlBlinkIntent.putExtra(BlinkyActivity.EXTRA_DEVICE, device);
-		startActivity(controlBlinkIntent);
-	}
+    @Override
+    public void onItemClick(@NonNull final DiscoveredBluetoothDevice device) {
+        final Intent controlBlinkIntent = new Intent(this, BlinkyActivity.class);
+        controlBlinkIntent.putExtra(BlinkyActivity.EXTRA_DEVICE, device);
+        startActivity(controlBlinkIntent);
+    }
 
-	@Override
-	public void onRequestPermissionsResult(final int requestCode,
-										   @NonNull final String[] permissions,
-										   @NonNull final int[] grantResults) {
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		switch (requestCode) {
-			case REQUEST_ACCESS_COARSE_LOCATION:
-			case REQUEST_ACCESS_FINE_LOCATION:
-				mScannerViewModel.refresh();
-				break;
-			case REQUEST_RECORD_AUDIO:
-				mScannerViewModel.refresh();
-				break;
-		}
-	}
+    @Override
+    public void onRequestPermissionsResult(final int requestCode,
+                                           @NonNull final String[] permissions,
+                                           @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_ACCESS_COARSE_LOCATION:
+            case REQUEST_ACCESS_FINE_LOCATION:
+                mScannerViewModel.refresh();
+                break;
+            case REQUEST_RECORD_AUDIO:
+                mScannerViewModel.refresh();
+                break;
+        }
+    }
 
-	@OnClick(R.id.action_enable_location)
-	public void onEnableLocationClicked() {
-		final Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-		startActivity(intent);
-	}
+    @OnClick(R.id.action_enable_location)
+    public void onEnableLocationClicked() {
+        final Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(intent);
+    }
 
-	@OnClick(R.id.action_enable_bluetooth)
-	public void onEnableBluetoothClicked() {
-		final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		startActivity(enableIntent);
-	}
+    @OnClick(R.id.action_enable_bluetooth)
+    public void onEnableBluetoothClicked() {
+        final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivity(enableIntent);
+    }
 
-	@OnClick(R.id.action_grant_location_permission)
-	public void onGrantLocationPermissionClicked() {
-		Utils.markLocationPermissionRequested(this);
-		ActivityCompat.requestPermissions(
-				this,
-				new String[] { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION },
-				REQUEST_ACCESS_FINE_LOCATION);
-	}
+    @OnClick(R.id.action_grant_location_permission)
+    public void onGrantLocationPermissionClicked() {
+        Utils.markLocationPermissionRequested(this);
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                REQUEST_ACCESS_FINE_LOCATION);
+    }
 
-	@OnClick(R.id.action_permission_settings)
-	public void onPermissionSettingsClicked() {
-		final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-		intent.setData(Uri.fromParts("package", getPackageName(), null));
-		startActivity(intent);
-	}
+    @OnClick(R.id.action_permission_settings)
+    public void onPermissionSettingsClicked() {
+        final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
+    }
 
-	@OnClick(R.id.action_grant_audio_permission)
-	public void onGrantAudioPermissionClicked() {
-		Utils.markAudioPermissionRequested(this);
-		ActivityCompat.requestPermissions(
-				this,
-				new String[] { Manifest.permission.RECORD_AUDIO },
-				REQUEST_RECORD_AUDIO);
-	}
+    @OnClick(R.id.action_location_settings)
+    public void onLocationSettingsClicked() {
+        final Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        //intent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
+    }
+
+    @OnClick(R.id.action_grant_audio_permission)
+    public void onGrantAudioPermissionClicked() {
+        Utils.markAudioPermissionRequested(this);
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.RECORD_AUDIO},
+                REQUEST_RECORD_AUDIO);
+    }
 
 
-	/**
-	 * Start scanning for Bluetooth devices or displays a message based on the scanner state.
-	 */
-	private void startScan(final ScannerStateLiveData state) {
-		// First, check the Location permission. This is required on Marshmallow onwards in order
-		// to scan for Bluetooth LE devices.
-		if (Utils.isLocationPermissionsGranted(this)) {
-			mNoLocationPermissionView.setVisibility(View.GONE);
+    /**
+     * Start scanning for Bluetooth devices or displays a message based on the scanner state.
+     */
+    private void startScan(final ScannerStateLiveData state) {
 
-			// Bluetooth must be enabled
-			if (state.isBluetoothEnabled()) {
-				mNoBluetoothView.setVisibility(View.GONE);
 
-				if (Utils.isAudioPermissionsGranted(this)) {
-					mNoAudioPermissionView.setVisibility(View.GONE);
+        if (!isLocationEnabled(getApplicationContext())) {
+            mNoLocationEnabledView.setVisibility(View.VISIBLE);
+        } else {
+            mNoLocationEnabledView.setVisibility(View.GONE);
 
-					// We are now OK to start scanning
-					mScannerViewModel.startScan();
-					mScanningView.setVisibility(View.VISIBLE);
+            // First, check the Location permission. This is required on Marshmallow onwards in order
+            // to scan for Bluetooth LE devices.
+            if (Utils.isLocationPermissionsGranted(this)) {
+                mNoLocationPermissionView.setVisibility(View.GONE);
 
-					if (!state.hasRecords()) {
-						mEmptyView.setVisibility(View.VISIBLE);
+                // Bluetooth must be enabled
+                if (state.isBluetoothEnabled()) {
+                    mNoBluetoothView.setVisibility(View.GONE);
 
-						if (!Utils.isLocationRequired(this) || Utils.isLocationEnabled(this)) {
-							mNoLocationView.setVisibility(View.INVISIBLE);
-						} else {
-							mNoLocationView.setVisibility(View.VISIBLE);
-						}
-					} else {
-						mEmptyView.setVisibility(View.GONE);
-					}
-				} else {
-					mNoAudioPermissionView.setVisibility(View.VISIBLE);
-				}
-			} else {
-				mNoBluetoothView.setVisibility(View.VISIBLE);
-				mScanningView.setVisibility(View.INVISIBLE);
-				mEmptyView.setVisibility(View.GONE);
-				clear();
-			}
-		} else {
-			mNoLocationPermissionView.setVisibility(View.VISIBLE);
-			mNoBluetoothView.setVisibility(View.GONE);
-			mScanningView.setVisibility(View.INVISIBLE);
-			mEmptyView.setVisibility(View.GONE);
-			mGrantPermissionButton.setVisibility(View.VISIBLE);
+                    if (Utils.isAudioPermissionsGranted(this)) {
+                        mNoAudioPermissionView.setVisibility(View.GONE);
 
-			final boolean deniedForever = Utils.isLocationPermissionDeniedForever(this);
-			//mGrantPermissionButton.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
-			//mPermissionSettingsButton.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
-		}
-	}
+                        // We are now OK to start scanning
+                        mScannerViewModel.startScan();
+                        mScanningView.setVisibility(View.VISIBLE);
 
-	/**
-	 * stop scanning for bluetooth devices.
-	 */
-	private void stopScan() {
-		mScannerViewModel.stopScan();
-	}
+                        if (!state.hasRecords()) {
+                            mEmptyView.setVisibility(View.VISIBLE);
 
-	/**
-	 * Clears the list of devices, which will notify the observer.
-	 */
-	private void clear() {
-		mScannerViewModel.getDevices().clear();
-		mScannerViewModel.getScannerState().clearRecords();
-	}
+                            if (!Utils.isLocationRequired(this) || Utils.isLocationEnabled(this)) {
+                                mNoLocationView.setVisibility(View.INVISIBLE);
+                            } else {
+                                mNoLocationView.setVisibility(View.VISIBLE);
+                            }
+                        } else {
+                            mEmptyView.setVisibility(View.GONE);
+                        }
+                    } else {
+                        mNoAudioPermissionView.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    mNoBluetoothView.setVisibility(View.VISIBLE);
+                    mScanningView.setVisibility(View.INVISIBLE);
+                    mEmptyView.setVisibility(View.GONE);
+                    clear();
+                }
+            } else {
+                mNoLocationPermissionView.setVisibility(View.VISIBLE);
+                mNoBluetoothView.setVisibility(View.GONE);
+                mScanningView.setVisibility(View.INVISIBLE);
+                mEmptyView.setVisibility(View.GONE);
+                mGrantPermissionButton.setVisibility(View.VISIBLE);
+
+                final boolean deniedForever = Utils.isLocationPermissionDeniedForever(this);
+                //mGrantPermissionButton.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
+                //mPermissionSettingsButton.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
+    /**
+     * stop scanning for bluetooth devices.
+     */
+    private void stopScan() {
+        mScannerViewModel.stopScan();
+    }
+
+    /**
+     * Clears the list of devices, which will notify the observer.
+     */
+    private void clear() {
+        mScannerViewModel.getDevices().clear();
+        mScannerViewModel.getScannerState().clearRecords();
+    }
+
+    public static boolean isLocationEnabled(Context context) {
+        int locationMode = 0;
+        String locationProviders;
+
+        try {
+            locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+
+    }
+
+
 }

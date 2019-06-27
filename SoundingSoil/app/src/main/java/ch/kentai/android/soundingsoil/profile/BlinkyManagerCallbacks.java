@@ -54,6 +54,10 @@ public interface BlinkyManagerCallbacks extends BleManagerCallbacks {
 
     void onVolumeChanged(@NonNull final BluetoothDevice device, final String string);
 
+    void onLongitudeChanged(@NonNull final BluetoothDevice device, final String string);
+
+    void onLatitudeChanged(@NonNull final BluetoothDevice device, final String string);
+
     void onDeviceDiscovered(@NonNull final SimpleBluetoothDevice device);
 
     void onInqStateChanged(@NonNull final boolean state);

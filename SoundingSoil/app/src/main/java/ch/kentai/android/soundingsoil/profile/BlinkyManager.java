@@ -196,6 +196,16 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
 							dev.rssi = scanner.next();
 							mCallbacks.onDeviceDiscovered(dev);
 						}
+					} else if (cmd.equalsIgnoreCase("LATLONG")) {
+						if (scanner.hasNextFloat()) {
+							param = String.valueOf(scanner.nextFloat());
+
+							mCallbacks.onLatitudeChanged(device, param);
+							if (scanner.hasNextFloat()) {
+								param = String.valueOf(scanner.nextFloat());
+								mCallbacks.onLongitudeChanged(device, param);
+							}
+						}
 					}
 
 					scanner.close();

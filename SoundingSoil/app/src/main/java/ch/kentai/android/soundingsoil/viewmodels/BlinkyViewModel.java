@@ -97,6 +97,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	private final MutableLiveData<String> mVolume = new MutableLiveData<>();
 
+	private final MutableLiveData<String> mLatitude = new MutableLiveData<>();
+
+	private final MutableLiveData<String> mLongitude = new MutableLiveData<>();
+
 	private final MutableLiveData<SimpleBluetoothDevice> mDeviceDiscovered = new MutableLiveData<>();
 
 	private final MutableLiveData<String> mBTStateChanged = new MutableLiveData<>();
@@ -169,6 +173,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	public LiveData<String> getVolume() {return  mVolume;}
 
+	public LiveData<String> getLatitude() {return  mLatitude;}
+
+	public LiveData<String> getLongitude() {return  mLongitude;}
+
 	public LiveData<SimpleBluetoothDevice> getDeviceDiscovered() {return  mDeviceDiscovered;}
 
 	public LiveData<String> getBTStateChanged() {return  mBTStateChanged;}
@@ -200,6 +208,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mRecNumber.setValue(0);
 		mIsConnected.setValue(true);
 		//mNextRecTime.setValue("");
+		mLatitude.setValue("");
+		mLongitude.setValue("");
 	}
 
 	/**
@@ -236,6 +246,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	public void disconnect() {
 		mDevice = null;
 		mBlinkyManager.disconnect().enqueue();
+		Log.w("tag", "disconnect!");
+
 	}
 
 
@@ -272,6 +284,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	public void sendStringToBlinkyManager(final String string) {
 		mBlinkyManager.send(string);
+	}
+
+	public void sendRwinParams() {
+		mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 	}
 
 	@Override
@@ -348,6 +364,18 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mVolume.postValue(string);
 		Log.w("tag", "onVolChanged " + string);
 
+	}
+
+	@Override
+	public void onLatitudeChanged(@NonNull final BluetoothDevice device, final String string) {
+		mLatitude.postValue(string);
+		Log.w("tag", "onLatitudeChanged " + string);
+	}
+
+	@Override
+	public void onLongitudeChanged(@NonNull final BluetoothDevice device, final String string) {
+		mLongitude.postValue(string);
+		Log.w("tag", "onLongitudeChanged " + string);
 	}
 
 	@Override
@@ -480,6 +508,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 			@Override
 			public void run() {
 				// show monitor elements as inactive
+				mBlinkyManager.send("latlong ?");
 				mBlinkyManager.send("bt ?");
 			}
 		}, 1000);
