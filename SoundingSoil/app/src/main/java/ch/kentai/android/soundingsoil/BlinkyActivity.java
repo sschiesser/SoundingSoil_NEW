@@ -36,9 +36,11 @@ import android.app.Activity;
 //import android.app.FragmentManager;
 //import android.support.v4.app.FragmentManager;
 //import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Canvas;
@@ -52,6 +54,7 @@ import android.nfc.FormatException;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 //import android.support.v4.content.ContextCompat;
 
 
@@ -60,6 +63,7 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -79,6 +83,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.graphics.Color;
+import android.widget.Toast;
 
 import com.newventuresoftware.waveform.WaveformView;
 
@@ -102,6 +107,7 @@ import ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel;
 import ch.kentai.android.soundingsoil.scanner.ScannerFragment;
 import ch.kentai.android.soundingsoil.utils.RepeatListener;
 import ch.kentai.android.soundingsoil.HelpFragment;
+import ch.kentai.android.soundingsoil.utils.HeadphoneMonitor;
 
 import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurrentTimezoneOffset;
 
@@ -179,6 +185,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	Drawable redConnectIcon;
 	Drawable greenConnectIcon;
 
+	private HeadphoneMonitor mHeadphoneMonitor;
+
+	private BroadcastReceiver mHeadphoneReceiver;
+
+	private boolean headphonesActive;
 
 
 
@@ -293,6 +304,53 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+
+		//mHeadphoneMonitor = new HeadphoneMonitor();
+		mHeadphoneReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG))
+				{
+					int state = intent.getIntExtra("state", -1);
+					Toast toast;
+					switch (state) {
+						case 0:
+							Log.d("HeadphoneMonitor", "Headset is unplugged");
+							toast = Toast.makeText(context,"Headset is unplugged", Toast.LENGTH_LONG);
+							toast.setGravity(Gravity.BOTTOM, 0, 200);
+							toast.show();
+							headphonesActive=false;
+							mRecordingThread.stopRecording();
+							break;
+						case 1:
+							Log.d("HeadphoneMonitor", "Headset is plugged in");
+							toast = Toast.makeText(context,"Headset is plugged in", Toast.LENGTH_LONG);
+							toast.setGravity(Gravity.BOTTOM, 0, 200);
+							toast.show();
+							headphonesActive=true;
+							if (mViewModel.getMonState().getValue() && 	mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("connected") ) {
+								mRecordingThread.startRecording();
+							}
+							break;
+						default:
+							Log.d("HeadphoneMonitor", "I have no idea what the headset state is");
+							break;
+					}
+
+					// push this event onto the queue to be processed by the Handler
+					//Message msg = uiHandler.obtainMessage(HEADPHONE_EVENT);
+					//MyApp.uiHandler.sendMessage(msg);
+				}
+			}
+		};
+
+		android.content.IntentFilter headphone_filter = new
+				android.content.IntentFilter(Intent.ACTION_HEADSET_PLUG);
+//		registerReceiver(mHeadphoneMonitor, headphone_filter);
+		registerReceiver(mHeadphoneReceiver, headphone_filter);
+
+
 
 
 		mDurationField.addTextChangedListener(new TextWatcher() {
@@ -510,7 +568,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					vol_part.setAlpha(1.0f);
 					mVolDownButton.setEnabled(true);
 					mVolUpButton.setEnabled(true);
-					mRecordingThread.startRecording();
+					if (headphonesActive) mRecordingThread.startRecording();
 				}
             }
 			Log.d(TAG, "Audio BT state: " + btState);
@@ -551,7 +609,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					//mRecordingThread.startRecording();
 					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
 					} else {
-						mRecordingThread.startRecording();
+						if (headphonesActive) mRecordingThread.startRecording();
 						vol_part.setAlpha(1.0f);
 						mVolDownButton.setEnabled(true);
 						mVolUpButton.setEnabled(true);
@@ -569,6 +627,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 				}
 		});
+
+
 
 
 		mViewModel.getRecState().observe(this, state -> {
