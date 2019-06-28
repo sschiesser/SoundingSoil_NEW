@@ -107,7 +107,6 @@ import ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel;
 import ch.kentai.android.soundingsoil.scanner.ScannerFragment;
 import ch.kentai.android.soundingsoil.utils.RepeatListener;
 import ch.kentai.android.soundingsoil.HelpFragment;
-import ch.kentai.android.soundingsoil.utils.HeadphoneMonitor;
 
 import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurrentTimezoneOffset;
 
@@ -185,7 +184,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	Drawable redConnectIcon;
 	Drawable greenConnectIcon;
 
-	private HeadphoneMonitor mHeadphoneMonitor;
 
 	private BroadcastReceiver mHeadphoneReceiver;
 
@@ -241,7 +239,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		recSettings.setVisibility(View.GONE);
 
 		mRealtimeWaveformView = (WaveformView) findViewById(R.id.waveformView);
-		mRecordingThread = new RecordingThread(new AudioDataReceivedListener() {
+		mRecordingThread = new RecordingThread(getApplicationContext(), new AudioDataReceivedListener() {
 			@Override
 			public void onAudioDataReceived(short[] data) {
 				mRealtimeWaveformView.setSamples(data);
@@ -306,7 +304,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		}
 
 
-		//mHeadphoneMonitor = new HeadphoneMonitor();
 		mHeadphoneReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -318,7 +315,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 						case 0:
 							Log.d("HeadphoneMonitor", "Headset is unplugged");
 							toast = Toast.makeText(context,"Headset is unplugged", Toast.LENGTH_LONG);
-							toast.setGravity(Gravity.BOTTOM, 0, 200);
+							toast.setGravity(Gravity.BOTTOM, 0, 220);
 							toast.show();
 							headphonesActive=false;
 							mRecordingThread.stopRecording();
@@ -326,10 +323,11 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 						case 1:
 							Log.d("HeadphoneMonitor", "Headset is plugged in");
 							toast = Toast.makeText(context,"Headset is plugged in", Toast.LENGTH_LONG);
-							toast.setGravity(Gravity.BOTTOM, 0, 200);
+							toast.setGravity(Gravity.BOTTOM, 0, 220);
 							toast.show();
 							headphonesActive=true;
-							if (mViewModel.getMonState().getValue() && 	mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("connected") ) {
+
+							if (mViewModel.getMonState().getValue() && 	!mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected") ) {
 								mRecordingThread.startRecording();
 							}
 							break;
@@ -344,12 +342,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				}
 			}
 		};
-
-		android.content.IntentFilter headphone_filter = new
-				android.content.IntentFilter(Intent.ACTION_HEADSET_PLUG);
-//		registerReceiver(mHeadphoneMonitor, headphone_filter);
-		registerReceiver(mHeadphoneReceiver, headphone_filter);
-
 
 
 
@@ -366,6 +358,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			public void afterTextChanged(Editable s) {
 				try {
 					mViewModel.setDuration(s.toString());
+
 				} catch (NumberFormatException nfe) {
 					Log.d(TAG, "period error");
 				}
@@ -450,7 +443,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
                     } else {
                     	// check if no latlong at all
 						if (mLatitude == "" || mLongitude == "") {
-							showAlertDialogNoLocation();
+							if (mViewModel.getRecState().getValue() == 0) showAlertDialogNoLocation();
 						}
 					}
                 }
@@ -574,6 +567,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			Log.d(TAG, "Audio BT state: " + btState);
 		});
 
+
 		mViewModel.isDeviceReady().observe(this, deviceReady -> {
 			progressContainer.setVisibility(View.GONE);
 			//content.setVisibility(View.VISIBLE);
@@ -606,8 +600,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					monLED.setColorFilter(Color.GREEN);
 					mMonButton.setText(R.string.mon_state_off);
 
-					//mRecordingThread.startRecording();
 					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+
 					} else {
 						if (headphonesActive) mRecordingThread.startRecording();
 						vol_part.setAlpha(1.0f);
@@ -816,7 +810,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		Log.d(TAG, "connex state changed: " + connected);
 		final View content = findViewById(R.id.device_container);
 		if (connected) {
-			mViewModel.requestDeviceStatus();
+			//mViewModel.requestDeviceStatus();
 			content.setAlpha(1);
 			enableDisableViewGroup((ViewGroup) content, true);
 
@@ -866,15 +860,14 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	@Override
 	protected void onStop() {
 		super.onStop();
-
-		//mRecordingThread.stopRecording();
 	}
 
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		mRecordingThread.stopRecording();
+        mRecordingThread.stopRecording();
+        unregisterReceiver(mHeadphoneReceiver);
 	}
 
 	@Override
@@ -886,7 +879,12 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if(mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+        android.content.IntentFilter headphone_filter = new
+                android.content.IntentFilter(Intent.ACTION_HEADSET_PLUG);
+
+        registerReceiver(mHeadphoneReceiver, headphone_filter);
+
+        if(mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected") && headphonesActive) {
 			mRecordingThread.startRecording();
 		}
 
@@ -970,7 +968,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		// setup the alert builder
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("CHANGE RECORD SETTINGS");
-		builder.setMessage("Do you really want to change the record settings?\n\nThe default values are 500 / 3600 / 24");
+		builder.setMessage("Do you really want to change the record settings?\n\nThe default values are 300 / 3600 / 24");
 		// add the buttons
 		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 			@Override

@@ -14,7 +14,10 @@
 
 package ch.kentai.android.soundingsoil;
 
+import android.content.Context;
+import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
@@ -23,13 +26,17 @@ public class RecordingThread {
     private static final String LOG_TAG = RecordingThread.class.getSimpleName();
     private static final int SAMPLE_RATE = 44100;
 
-    public RecordingThread(AudioDataReceivedListener listener) {
+    public RecordingThread(Context context, AudioDataReceivedListener listener) {
         mListener = listener;
+        this.context = context;
     }
 
     private boolean mShouldContinue;
     private AudioDataReceivedListener mListener;
     private Thread mThread;
+    private AudioDeviceInfo mAudioInputDevice;
+    private Context context;
+    private AudioManager manager;
 
     public boolean recording() {
         return mThread != null;
@@ -61,6 +68,9 @@ public class RecordingThread {
         Log.v(LOG_TAG, "Start");
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
 
+
+        manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
         // buffer size in bytes
         int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
@@ -78,11 +88,22 @@ public class RecordingThread {
                 AudioFormat.ENCODING_PCM_16BIT,
                 bufferSize);
 
+
+        //mAudioInputDevice = findAudioDevice(AudioManager.GET_DEVICES_INPUTS,
+        //        AudioDeviceInfo.TYPE_BUILTIN_MIC);
+
+        //if (mAudioInputDevice != null) {
+        //    record.setPreferredDevice(mAudioInputDevice);
+        //}
+
+
         if (record.getState() != AudioRecord.STATE_INITIALIZED) {
             Log.e(LOG_TAG, "Audio Record can't initialize!");
             return;
         }
         record.startRecording();
+        //manager.setMicrophoneMute(true);
+
 
         Log.v(LOG_TAG, "Start recording");
 
@@ -99,5 +120,17 @@ public class RecordingThread {
         record.release();
 
         Log.v(LOG_TAG, String.format("Recording stopped. Samples read: %d", shortsRead));
+    }
+
+    private AudioDeviceInfo findAudioDevice(int deviceFlag, int deviceType) {
+        //AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        AudioDeviceInfo[] adis = manager.getDevices(deviceFlag);
+        for (AudioDeviceInfo adi : adis) {
+            Log.d("Recording Thread", "AudioDeviceInfo " + adi.getType());
+            if (adi.getType() == deviceType) {
+                return adi;
+            }
+        }
+        return null;
     }
 }

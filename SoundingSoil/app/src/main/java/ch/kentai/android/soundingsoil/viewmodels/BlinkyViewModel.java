@@ -206,7 +206,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mBTStateChanged.postValue("DISCONNECTED");
 		mConnectionState.setValue("");
 		mRecNumber.setValue(0);
-		mIsConnected.setValue(true);
+		mIsConnected.setValue(false);
 		//mNextRecTime.setValue("");
 		mLatitude.setValue("");
 		mLongitude.setValue("");
@@ -486,33 +486,50 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	public void requestDeviceStatus() {
+		//
+		Log.w("tag", "requestDeviceStatus");
 		mBlinkyManager.send("rec ?");
 		mBlinkyManager.send("mon ?");
-        mBlinkyManager.send("rwin ?");
 
 
 		final Handler handler1 = new Handler();
 		handler1.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				// show monitor elements as inactive
-				mBlinkyManager.send("filepath ?");
-				mBlinkyManager.send("vol ?");
-				mBlinkyManager.send("rec_next ?");
-				mBlinkyManager.send("rec_nb ?");
+				mBlinkyManager.send("rwin ?");
+				mBlinkyManager.send("latlong ?");
 			}
 		}, 500);
+
 
 		final Handler handler2 = new Handler();
 		handler2.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				// show monitor elements as inactive
-				mBlinkyManager.send("latlong ?");
-				mBlinkyManager.send("bt ?");
+				mBlinkyManager.send("filepath ?");
+				mBlinkyManager.send("vol ?");
 			}
 		}, 1000);
 
+
+		final Handler handler3 = new Handler();
+		handler3.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				// show monitor elements as inactive
+				mBlinkyManager.send("rec_next ?");
+				mBlinkyManager.send("rec_nb ?");
+			}
+		}, 1500);
+
+		final Handler handler4 = new Handler();
+		handler4.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				// show monitor elements as inactive
+				mBlinkyManager.send("bt ?");
+			}
+		}, 2000);
 
 
 
