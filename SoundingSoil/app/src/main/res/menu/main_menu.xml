@@ -9,6 +9,12 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/location"
+        android:icon="@drawable/icons8_marker_filled_50"
+        android:title="LOCATION"
+        app:showAsAction="always" />
+
+    <item
         android:title="HELP"
         android:id="@+id/help"/>
 

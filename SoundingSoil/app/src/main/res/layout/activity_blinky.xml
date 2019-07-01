@@ -337,7 +337,7 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:background="#00FFFFFF"
-					android:paddingTop="30dp"
+					android:paddingTop="25dp"
 					android:text="@string/rec_state_unknown"
 					android:textAlignment="center"
 					android:textColor="#FFFFFF"
@@ -365,7 +365,16 @@
                     android:textColor="#FFFFFF"
                     android:textSize="14sp" />
 
-                <LinearLayout
+				<TextView
+					android:id="@+id/rec_time_next"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:padding="2dp"
+					android:textAlignment="center"
+					android:textColor="#FFFFFF"
+					android:textSize="14sp" />
+
+				<LinearLayout
                     android:id="@+id/rec_number_part"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

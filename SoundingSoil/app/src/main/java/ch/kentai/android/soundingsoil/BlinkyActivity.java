@@ -152,6 +152,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
     @BindView(R.id.vol_control_part) LinearLayout vol_part;
 
 	@BindView(R.id.rec_time) TextView mRecTimeView;
+	@BindView(R.id.rec_time_next) TextView mRecTimeNextView;
 	@BindView(R.id.rec_number) TextView mRecNumberView;
 	@BindView(R.id.rec_number_part) LinearLayout mRecNumberPart;
 	@BindView(R.id.file_path_part) LinearLayout mFilePathPart;
@@ -180,9 +181,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	private String mLongitude;
 
 	MenuItem connectItem;
+	MenuItem locationItem;
 
 	Drawable redConnectIcon;
 	Drawable greenConnectIcon;
+
+	Drawable redLocationIcon;
+	Drawable greenLocationIcon;
 
 
 	private BroadcastReceiver mHeadphoneReceiver;
@@ -254,6 +259,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		}, 1000);
 
+		// delay latlong request
+		final Handler handler1 = new Handler();
+		handler1.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				getLatLong();
+			}
+		}, 1000);
+
+
 
 		Thread recTimer = new Thread() {
 			@Override
@@ -269,7 +284,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 							mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
 						} else {
 							// state stopped
-							mRecTimeView.setText("--");
+							//mRecTimeView.setText("--");
 						}
 					}
 				});
@@ -295,13 +310,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		recTimer.start();
 
 
-		try {
-			SQLiteDatabase mDataBase = this.openOrCreateDatabase("Presets", MODE_PRIVATE, null);
-			mDataBase.execSQL("CREATE TABLE IF NOT EXISTS presets (duration VARCHAR, period VARCHAR, occurences VARCHAR)");
-			mDataBase.execSQL("INSERT INTO presets (duration, period, ocurrences) VALUES ('10', '20', '3')");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			SQLiteDatabase mDataBase = this.openOrCreateDatabase("Presets", MODE_PRIVATE, null);
+//			mDataBase.execSQL("CREATE TABLE IF NOT EXISTS presets (duration VARCHAR, period VARCHAR, occurences VARCHAR)");
+//			mDataBase.execSQL("INSERT INTO presets (duration, period, ocurrences) VALUES ('10', '20', '3')");
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 
 		mHeadphoneReceiver = new BroadcastReceiver() {
@@ -418,35 +433,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void onClick(View v) {
 
-			    // check permission
-                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                    boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-                    boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-                    Location location = null;
+				if (mViewModel.getRecState().getValue() == 0) {	// rec stopped
 
-                    if (isNetworkEnabled) {
-                        location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                    } else if (isGPSEnabled) {
-                        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    }
+					getLatLong();
 
-                    if (location != null) {
-                        double longitude = location.getLongitude();
-                        double latitude = location.getLatitude();
-
-                        mLatitude = String.format("%.4f", latitude);
-                        mLongitude = String.format("%.4f", longitude);
-
-                        mViewModel.setLatitude(mLatitude);
-                        mViewModel.setLongitude(mLongitude);
-                    } else {
-                    	// check if no latlong at all
-						if (mLatitude == "" || mLongitude == "") {
-							if (mViewModel.getRecState().getValue() == 0) showAlertDialogNoLocation();
-						}
+					// check if no latlong at all
+					if (mLatitude == "" || mLongitude == "") {
+						showAlertDialogNoLocation();
 					}
-                }
+				}
+
 				mViewModel.toggleRec();
 			}
 		});
@@ -636,6 +632,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				mRecNumberPart.setVisibility(View.GONE);
 				mFilePathPart.setVisibility(View.GONE);
 				mRecTimeView.setVisibility(View.GONE);
+				mRecTimeNextView.setVisibility(View.GONE);
 			}
 			else if (state == 1) {
 				mRecStateView.setText(R.string.rec_state_wait);
@@ -643,6 +640,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				// request time of next record to set wait countdown timer
 				mRecNumberPart.setVisibility(View.GONE);
 				mFilePathPart.setVisibility(View.GONE);
+				mRecTimeView.setVisibility(View.GONE);
+				mRecTimeNextView.setVisibility(View.VISIBLE);
 			}
 			else if(state == 2) {
 				mRecStateView.setText(R.string.rec_state_on);
@@ -652,6 +651,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				mRecNumberPart.setVisibility(View.VISIBLE);
 				mFilePathPart.setVisibility(View.VISIBLE);
 				mRecTimeView.setVisibility(View.VISIBLE);
+				mRecTimeNextView.setVisibility(View.GONE);
 			}
 			else if(state == 3) {
 				mRecStateView.setText(R.string.rec_state_preparing);
@@ -681,7 +681,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			// give a timezone reference for formatting (see comment at the bottom)
 			sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
 			String formattedDate = sdf.format(date);
-			mRecTimeView.setText("NEXT RECORD AT: " + formattedDate);
+			mRecTimeNextView.setText("NEXT RECORD AT: " + formattedDate);
 			Log.d(TAG, "Next Rec in: " + nextRecTime + "s / " + formattedDate);
 		});
 
@@ -748,11 +748,22 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		mViewModel.getLatitude().observe(this, string
 				-> {
 			mLatitude = string;
+			if (mLatitude != "" && mLongitude != "") {
+				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+			} else {
+				if (locationItem != null) locationItem.setIcon(redLocationIcon);
+			}
+
 		});
 
 		mViewModel.getLongitude().observe(this, string
 				-> {
 			mLongitude = string;
+			if (mLatitude != "" && mLongitude != "") {
+				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+			} else {
+				if (locationItem != null) locationItem.setIcon(redLocationIcon);
+			}
 		});
 
 		mViewModel.getDataReceived().observe(this, string
@@ -856,6 +867,42 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 	}
 
 
+	private void getLatLong() {
+
+		// check permission
+		if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+			LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+			Location location = null;
+
+			if (isNetworkEnabled) {
+				location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			} else if (isGPSEnabled) {
+				location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			}
+
+			if (location != null) {
+				double longitude = location.getLongitude();
+				double latitude = location.getLatitude();
+
+				mLatitude = String.format("%.4f", latitude);
+				mLongitude = String.format("%.4f", longitude);
+
+				mViewModel.setLatitude(mLatitude);
+				mViewModel.setLongitude(mLongitude);
+
+			}
+
+			if (mLatitude != "" && mLongitude != "") {
+				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+			} else {
+				if (locationItem != null) locationItem.setIcon(redLocationIcon);
+			}
+
+		}
+
+	}
 
 	@Override
 	protected void onStop() {
@@ -907,10 +954,29 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		redConnectIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
 
 
+
+		locationItem = menu.findItem(R.id.location);
+
+		greenLocationIcon = locationItem.getIcon();
+		greenLocationIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
+
+		redLocationIcon =
+				getApplicationContext().getResources().getDrawable(R.drawable.icons8_marker_filled_50, getApplicationContext().getTheme());
+
+		redLocationIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
+
+
 		if(mViewModel.isConnected().getValue()) {
 			connectItem.setIcon(greenConnectIcon);
 		} else {
 			connectItem.setIcon(redConnectIcon);
+		}
+
+
+		if (mLatitude != "" && mLongitude != "") {
+			locationItem.setIcon(greenLocationIcon);
+		} else {
+			locationItem.setIcon(redLocationIcon);
 		}
 
 		return super.onCreateOptionsMenu(menu);
