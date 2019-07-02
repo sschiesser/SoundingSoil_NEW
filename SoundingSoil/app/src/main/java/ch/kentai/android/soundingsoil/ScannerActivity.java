@@ -31,7 +31,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 
@@ -44,21 +43,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import ch.kentai.android.soundingsoil.R;
 import ch.kentai.android.soundingsoil.adapter.DevicesAdapter;
 import ch.kentai.android.soundingsoil.adapter.DiscoveredBluetoothDevice;
 import ch.kentai.android.soundingsoil.utils.Utils;
@@ -94,6 +89,11 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
     View mNoBluetoothView;
     @BindView(R.id.help)
     View mHelp;
+    @BindView(R.id.swiperefresh)
+    SwipeRefreshLayout mSwipeRefresh;
+
+
+
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -117,6 +117,21 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
         final DevicesAdapter adapter = new DevicesAdapter(this, mScannerViewModel.getDevices());
         adapter.setOnItemClickListener(this);
         recyclerView.setAdapter(adapter);
+
+
+        mSwipeRefresh.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.d("SCAN", "swipe refresh");
+                        clear();
+                        mSwipeRefresh.setRefreshing(false);
+                    }
+                }
+        );
+
+
+
     }
 
     @Override
@@ -134,9 +149,6 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.filter, menu);
-        //menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
-        //menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
-
 
         return true;
     }
@@ -153,14 +165,6 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
                 transaction.commit();
 
                 return true;
-//			case R.id.filter_uuid:
-//				item.setChecked(!item.isChecked());
-//				mScannerViewModel.filterByUuid(item.isChecked());
-//				return true;
-//			case R.id.filter_nearby:
-//				item.setChecked(!item.isChecked());
-//				mScannerViewModel.filterByDistance(item.isChecked());
-//				return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -322,8 +326,5 @@ public class ScannerActivity extends AppCompatActivity implements DevicesAdapter
         }
 
         return locationMode != Settings.Secure.LOCATION_MODE_OFF;
-
     }
-
-
 }
