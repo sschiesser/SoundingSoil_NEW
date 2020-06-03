@@ -22,8 +22,6 @@
 
 package ch.kentai.android.soundingsoil;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
@@ -40,26 +38,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.location.LocationManager;
-import android.nfc.FormatException;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 //import android.support.v4.content.ContextCompat;
 
 
 import android.os.Handler;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -87,11 +77,8 @@ import android.widget.Toast;
 
 import com.newventuresoftware.waveform.WaveformView;
 
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -106,7 +93,6 @@ import ch.kentai.android.soundingsoil.scanner.SimpleBluetoothDevice;
 import ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel;
 import ch.kentai.android.soundingsoil.scanner.ScannerFragment;
 import ch.kentai.android.soundingsoil.utils.RepeatListener;
-import ch.kentai.android.soundingsoil.HelpFragment;
 
 import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurrentTimezoneOffset;
 
@@ -171,7 +157,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	private static final int REQUEST_CODE = 0;
 	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
-	private  int recTime = 0;
+	public  int recTime = 0;
 	private  int nextRecTime = 0;
 	private int recState = 0;
 
@@ -281,7 +267,16 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 						if (recState == 1) {
 							// waiting: display next rec time
 						} else if (recState == 2) {
-							mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
+							int rec_dur;
+							try {
+								rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
+							} catch (NumberFormatException e) {
+								rec_dur = 0;
+							}
+							if(rec_dur != 0)
+								mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
+							else
+								mRecTimeView.setText("CONTINUOUS RECORDING");
 						} else {
 							// state stopped
 							//mRecTimeView.setText("--");
@@ -372,7 +367,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void afterTextChanged(Editable s) {
 				try {
-					mViewModel.setDuration(s.toString());
+					mViewModel.setmDuration(s.toString());
 
 				} catch (NumberFormatException nfe) {
 					Log.d(TAG, "period error");
@@ -563,7 +558,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			Log.d(TAG, "Audio BT state: " + btState);
 		});
 
-
 		mViewModel.isDeviceReady().observe(this, deviceReady -> {
 			progressContainer.setVisibility(View.GONE);
 			//content.setVisibility(View.VISIBLE);
@@ -588,7 +582,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 				notSupported.setVisibility(View.VISIBLE);
 			}
 		});
-
 
 		mViewModel.getMonState().observe(this, isOn -> {
 			//mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
@@ -617,9 +610,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 				}
 		});
-
-
-
 
 		mViewModel.getRecState().observe(this, state -> {
 			recState = state;
@@ -660,12 +650,28 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
-
 		mViewModel.getRecNumber().observe(this, recNumber -> {
 			Log.d(TAG, "Rec Number: " + recNumber);
-			mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
+            int rec_dur, rec_occ;
+            try {
+				rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
+				Log.d(TAG, "Rec duration: " + rec_dur);
+			} catch (NumberFormatException e) {
+				rec_dur = 0;
+			}
+            try {
+				rec_occ = Integer.parseInt(mViewModel.getOccurence().getValue());
+				Log.d(TAG, "Rec occurence: " + rec_occ);
+			} catch (NumberFormatException e) {
+				rec_occ = 0;
+			}
+            if(rec_dur == 0)
+            	mRecNumberView.setText(" 1 of 1");
+            else if(rec_occ == 0)
+				mRecNumberView.setText(" " + recNumber);
+			else
+				mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
 		});
-
 
 		mViewModel.getNextRecTime().observe(this, nextRectimeString -> {
 			Log.d(TAG, "Next Rec Time: " + nextRectimeString);
@@ -685,6 +691,14 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			Log.d(TAG, "Next Rec in: " + nextRecTime + "s / " + formattedDate);
 		});
 
+		mViewModel.getRecRem().observe(this, recRemString -> {
+			try {
+				recTime = (int)Float.parseFloat(recRemString);
+				Log.d(TAG, "Rec remaining: " + recTime);
+			} catch (NumberFormatException e) {
+
+			}
+		});
 
 		mViewModel.getFilepath().observe(this, path -> {
 			if (path.equalsIgnoreCase("--")) {
@@ -733,7 +747,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			Log.d(TAG, "Filepath: " + path);
 		});
 
-
 		mViewModel.getVolume().observe(this, string -> {
 			try {
 				int vol = (int)Float.parseFloat(string);
@@ -743,7 +756,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 			}
 		});
-
 
 		mViewModel.getLatitude().observe(this, string
 				-> {
@@ -865,7 +877,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			df.dismiss();
 		}
 	}
-
 
 	private void getLatLong() {
 
@@ -1083,10 +1094,12 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 		if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
 			getSupportFragmentManager().popBackStack();
 			mHelp.setVisibility(View.GONE);
+			mViewModel.disconnect();
 			//getSupportFragmentManager().findFragmentByTag("help_fragment");
 
 		} else {
 			super.onBackPressed();
+			mViewModel.disconnect();
 		}
 	}
 

@@ -28,17 +28,11 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.util.Log;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -85,11 +79,13 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	private final MutableLiveData<String> mNextRecTime = new MutableLiveData<>();
 
+	private final MutableLiveData<String> mRecRem = new MutableLiveData<>();
+
 	private final MutableLiveData<String> mDataSent = new MutableLiveData<>();
 
 	private final MutableLiveData<ArrayList<String>> mDataSentReceived = new MutableLiveData<>();
 
-	private final MutableLiveData<String> duration = new MutableLiveData<>();
+	private final MutableLiveData<String> mDuration = new MutableLiveData<>();
 	private final MutableLiveData<String> mPeriod = new MutableLiveData<>();
     private final MutableLiveData<String> mOccurence = new MutableLiveData<>();
 
@@ -106,6 +102,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	private final MutableLiveData<String> mBTStateChanged = new MutableLiveData<>();
 
 	private final MutableLiveData<Boolean> mInqState = new MutableLiveData<>();
+
+	private final MutableLiveData<String> mRemainingTime = new MutableLiveData<>();
 
 	private String latitude = "";
 	private String longitude = "";
@@ -154,6 +152,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mNextRecTime;
 	}
 
+	public  LiveData<String> getRecRem() {
+		return  mRecRem;
+	}
+
 	public LiveData<String> getDataSent() {
 		return mDataSent;
 	}
@@ -163,7 +165,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	//@Bindable
-	public LiveData<String> getDuration() {return duration;}
+	public LiveData<String> getDuration() {return mDuration;}
 
 	public LiveData<String> getPeriod() {return mPeriod;}
 
@@ -185,6 +187,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mInqState;
 	}
 
+	public LiveData<String> getRemainingTime() { return mRemainingTime; }
+
 
 
 
@@ -202,10 +206,11 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 		mDataSentReceived.setValue(new ArrayList<String>());
 		mMonState.setValue(false);
-		duration.setValue("300");
+		mDuration.setValue("300");
 		mBTStateChanged.postValue("DISCONNECTED");
 		mConnectionState.setValue("");
 		mRecNumber.setValue(0);
+		mRecRem.setValue("");
 		mIsConnected.setValue(false);
 		//mNextRecTime.setValue("");
 		mLatitude.setValue("");
@@ -272,7 +277,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 			unixTime += getCurrentTimezoneOffset();		// add time zone offset
 			mBlinkyManager.send("time " + unixTime);
 			mBlinkyManager.send("latlong " + latitude + " " + longitude);
-			mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
+			mBlinkyManager.send("rwin " + mDuration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 			mBlinkyManager.send("rec start");
 			mRecState.setValue(3);		// 3 == rec preparing
 		}
@@ -287,7 +292,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	public void sendRwinParams() {
-		mBlinkyManager.send("rwin " + duration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
+		mBlinkyManager.send("rwin " + mDuration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 	}
 
 	@Override
@@ -320,6 +325,11 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	}
 
 	@Override
+	public void onRecRemChanged(@NonNull final BluetoothDevice device, final String recRem) {
+		mRecRem.postValue(recRem);
+	}
+
+	@Override
 	public void onDataReceived(@NonNull final BluetoothDevice device, final String string) {
 		mDataReceived.postValue(string);
 		addToDataSentReceived("R: " + string);
@@ -333,7 +343,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	@Override
 	public void onDurationChanged(@NonNull final BluetoothDevice device, final String string) {
-		duration.postValue(string);
+		mDuration.postValue(string);
 		Log.w("tag", "onDurChanged " + string);
 
 	}
@@ -535,8 +545,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	}
 
-	public void setDuration(String string	) {
-		duration.setValue(string);
+	public void setmDuration(String string	) {
+		mDuration.setValue(string);
 	}
 
 	public void setPeriod(String period) {
