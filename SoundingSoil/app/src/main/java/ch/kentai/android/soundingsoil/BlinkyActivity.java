@@ -367,7 +367,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			@Override
 			public void afterTextChanged(Editable s) {
 				try {
-					mViewModel.setmDuration(s.toString());
+					mViewModel.setDuration(s.toString());
 
 				} catch (NumberFormatException nfe) {
 					Log.d(TAG, "period error");
@@ -700,6 +700,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
+		mViewModel.getTimeReq().observe(this, timeReqString -> {
+			if(timeReqString.equalsIgnoreCase("?")) {
+				Log.d(TAG, "Time request!");
+				mViewModel.sendCurrentTime();
+			}
+		});
+
 		mViewModel.getFilepath().observe(this, path -> {
 			if (path.equalsIgnoreCase("--")) {
 
@@ -721,7 +728,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 					// get local time
 					long now = System.currentTimeMillis();
-					long diff = now - recStartDate.getTime();
+					long diff = (now - recStartDate.getTime()) / 1000;
 					Log.d(TAG, "Rec time difference: " + now + " - " + recStartDate.getTime() + " = "  + diff);
 
 					int dur;
@@ -737,7 +744,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					if (dur != 0) {
 						// not endless recording duration
 						// reset the count down
-						recTime = dur - (int)(diff / 1000);
+						recTime = dur - (int)(diff);
 						Log.d(TAG, "remaining rec time: " + recTime);
 					} else {
 						recTime = 0;

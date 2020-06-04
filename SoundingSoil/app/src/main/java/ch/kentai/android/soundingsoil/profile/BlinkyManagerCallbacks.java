@@ -42,6 +42,8 @@ public interface BlinkyManagerCallbacks extends BleManagerCallbacks {
 
     void onRecRemChanged(@NonNull final BluetoothDevice device, final String recRec);
 
+    void onTimeReqChanged(@NonNull final BluetoothDevice device, final String timeReq);
+
     void onDataReceived(@NonNull final BluetoothDevice device, final String string);
 
     void onDataSent(@NonNull final BluetoothDevice device, final String string);

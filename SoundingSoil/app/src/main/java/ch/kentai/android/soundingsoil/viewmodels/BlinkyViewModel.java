@@ -33,6 +33,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -80,6 +81,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	private final MutableLiveData<String> mNextRecTime = new MutableLiveData<>();
 
 	private final MutableLiveData<String> mRecRem = new MutableLiveData<>();
+
+	private final MutableLiveData<String> mTimeReq = new MutableLiveData<>();
 
 	private final MutableLiveData<String> mDataSent = new MutableLiveData<>();
 
@@ -152,8 +155,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mNextRecTime;
 	}
 
-	public  LiveData<String> getRecRem() {
-		return  mRecRem;
+	public  LiveData<String> getRecRem() { return  mRecRem;	}
+
+	public  LiveData<String> getTimeReq() {
+		return mTimeReq;
 	}
 
 	public LiveData<String> getDataSent() {
@@ -211,6 +216,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mConnectionState.setValue("");
 		mRecNumber.setValue(0);
 		mRecRem.setValue("");
+		mTimeReq.setValue("");
 		mIsConnected.setValue(false);
 		//mNextRecTime.setValue("");
 		mLatitude.setValue("");
@@ -327,6 +333,11 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	@Override
 	public void onRecRemChanged(@NonNull final BluetoothDevice device, final String recRem) {
 		mRecRem.postValue(recRem);
+	}
+
+	@Override
+	public void onTimeReqChanged(@NonNull final BluetoothDevice device, final String timeReq) {
+		mTimeReq.postValue(timeReq);
 	}
 
 	@Override
@@ -545,7 +556,14 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	}
 
-	public void setmDuration(String string	) {
+	public void sendCurrentTime() {
+		long now = System.currentTimeMillis() / 1000;
+		now += getCurrentTimezoneOffset();		// add time zone offset
+		Log.d(TAG, "Sending current timestamp: " + now);
+		mBlinkyManager.send("time " + now);
+	}
+
+	public void setDuration(String string	) {
 		mDuration.setValue(string);
 	}
 

@@ -157,6 +157,11 @@ public class BlinkyManager extends BleManager<BlinkyManagerCallbacks> {
 							param = scanner.next();
 							mCallbacks.onNextRecTimeChanged(device, param);
 						}
+					} else if(cmd.equalsIgnoreCase("TIME")) {
+						if(scanner.hasNext()) {
+							param = scanner.next();
+							mCallbacks.onTimeReqChanged(device, param);
+						}
 					} else if(cmd.equalsIgnoreCase("REC_REM")) {
 						if (scanner.hasNext()) {
 							param = scanner.next();
