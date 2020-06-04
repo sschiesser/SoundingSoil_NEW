@@ -273,13 +273,14 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 							} catch (NumberFormatException e) {
 								rec_dur = 0;
 							}
-							if(rec_dur != 0)
-								mRecTimeView.setText("REMAINING TIME: " + Integer.toString(recTime) + "s"); //this is the textview
-							else
+							if(rec_dur != 0) {
+								mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
+							} else {
 								mRecTimeView.setText("CONTINUOUS RECORDING");
+							}
 						} else {
-							// state stopped
-							//mRecTimeView.setText("--");
+//							recTime = rec_dur;							// state stopped
+							mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
 						}
 					}
 				});
@@ -291,7 +292,10 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					}
 				} else {
 					// state stopped or preparing
-					recTime = 0;
+					try {
+						recTime = Integer.parseInt(mViewModel.getDuration().getValue()) - 1;
+					} catch (NumberFormatException e) {
+					}
 				}
 
 				try {
@@ -693,7 +697,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 		mViewModel.getRecRem().observe(this, recRemString -> {
 			try {
-				recTime = (int)Float.parseFloat(recRemString);
+				recTime = (int)Integer.parseInt(recRemString);
 				Log.d(TAG, "Rec remaining: " + recTime);
 			} catch (NumberFormatException e) {
 
@@ -750,7 +754,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 					if (dur != 0) {
 						// not endless recording duration
-						// reset the count down
+						// reset the countdown
 						recTime = dur - (int)(diff);
 						Log.d(TAG, "remaining rec time: " + recTime);
 					} else {
