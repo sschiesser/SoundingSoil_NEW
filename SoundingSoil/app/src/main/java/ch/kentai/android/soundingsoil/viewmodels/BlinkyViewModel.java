@@ -84,6 +84,8 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	private final MutableLiveData<String> mTimeReq = new MutableLiveData<>();
 
+	private final MutableLiveData<String> mLatlongReq = new MutableLiveData<>();
+
 	private final MutableLiveData<String> mDataSent = new MutableLiveData<>();
 
 	private final MutableLiveData<ArrayList<String>> mDataSentReceived = new MutableLiveData<>();
@@ -155,10 +157,16 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		return mNextRecTime;
 	}
 
-	public  LiveData<String> getRecRem() { return  mRecRem;	}
+	public  LiveData<String> getRecRem() {
+		return  mRecRem;
+	}
 
 	public  LiveData<String> getTimeReq() {
 		return mTimeReq;
+	}
+
+	public LiveData<String> getLatlongReq() {
+		return mLatlongReq;
 	}
 
 	public LiveData<String> getDataSent() {
@@ -194,13 +202,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	public LiveData<String> getRemainingTime() { return mRemainingTime; }
 
-
-
-
 	private static final String TAG = "BlinkyViewModel";
-
-
-
 
 	public BlinkyViewModel(@NonNull final Application application) {
 		super(application);
@@ -217,6 +219,7 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		mRecNumber.setValue(0);
 		mRecRem.setValue("");
 		mTimeReq.setValue("");
+		mLatlongReq.setValue("");
 		mIsConnected.setValue(false);
 		//mNextRecTime.setValue("");
 		mLatitude.setValue("");
@@ -261,8 +264,6 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	}
 
-
-
 	public void toggleMon() {
 		if(mMonState.getValue()) {
 			mBlinkyManager.send("mon stop");
@@ -275,14 +276,12 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 	}
 
-
 	public void toggleRec() {
 		if(mRecState.getValue() == null || mRecState.getValue() == 0) {
-
 			long unixTime = System.currentTimeMillis() / 1000;
 			unixTime += getCurrentTimezoneOffset();		// add time zone offset
 			mBlinkyManager.send("time " + unixTime);
-			mBlinkyManager.send("latlong " + latitude + " " + longitude);
+//			mBlinkyManager.send("latlong " + latitude + " " + longitude);
 			mBlinkyManager.send("rwin " + mDuration.getValue() + " " +  mPeriod.getValue() + " " + mOccurence.getValue() );
 			mBlinkyManager.send("rec start");
 			mRecState.setValue(3);		// 3 == rec preparing
@@ -308,7 +307,6 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 			disconnect();
 		}
 	}
-
 
     @Override
 	public void onMonStateChanged(@NonNull final BluetoothDevice device, final boolean on) {
@@ -338,6 +336,11 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 	@Override
 	public void onTimeReqChanged(@NonNull final BluetoothDevice device, final String timeReq) {
 		mTimeReq.postValue(timeReq);
+	}
+
+	@Override
+	public void onLatlongReqChanged(@NonNull final BluetoothDevice device, final String latlongReq) {
+		mLatlongReq.postValue(latlongReq);
 	}
 
 	@Override
@@ -561,6 +564,11 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		now += getCurrentTimezoneOffset();		// add time zone offset
 		Log.d(TAG, "Sending current timestamp: " + now);
 		mBlinkyManager.send("time " + now);
+	}
+
+	public void sendLatLong() {
+		Log.d(TAG, "Sending latlong");
+		mBlinkyManager.send("latlong " + latitude + " " + longitude);
 	}
 
 	public void setDuration(String string	) {

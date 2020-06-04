@@ -707,6 +707,13 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 			}
 		});
 
+		mViewModel.getLatlongReq().observe(this, latlongReqString -> {
+			if(latlongReqString.equalsIgnoreCase("?")) {
+				Log.d(TAG, "Latlong request!");
+				mViewModel.sendLatLong();
+			}
+		});
+
 		mViewModel.getFilepath().observe(this, path -> {
 			if (path.equalsIgnoreCase("--")) {
 
