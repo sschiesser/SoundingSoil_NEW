@@ -124,6 +124,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 	@BindView(R.id.vol_up_button) ImageButton mVolUpButton;
 	@BindView(R.id.vol_down_button) ImageButton mVolDownButton;
+	@BindView(R.id.volumeBar) ProgressBar mVolumeBar;
+	@BindView(R.id.vol_text) TextView mVolText;
 
 	@BindView(R.id.status_req_button) Button mStatusReqButton;
 	@BindView(R.id.clear_mon_button) Button mClearButton;
@@ -532,13 +534,15 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					mViewModel.toggleMon();
 				}
 				connexLED.setColorFilter(Color.argb(255, 166, 51, 51));
-				mConnexState.setText("--");
+				mConnexState.setText(" ");
 
 				final Handler handler = new Handler();
 				handler.postDelayed(new Runnable() {
 					@Override
 					public void run() {
 						vol_part.setAlpha(.5f);
+						mVolumeBar.setAlpha(.0f);
+						mVolText.setAlpha(.0f);
 						mVolDownButton.setEnabled(false);
 						mVolUpButton.setEnabled(false);
 						mConnButton.setText("CONNECT");
@@ -554,6 +558,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
 				if (mViewModel.getMonState().getValue()) {	// monitor on
 					vol_part.setAlpha(1.0f);
+					mVolumeBar.setAlpha(1.0f);
+					mVolText.setAlpha(1.0f);
 					mVolDownButton.setEnabled(true);
 					mVolUpButton.setEnabled(true);
 					if (headphonesActive) mRecordingThread.startRecording();
@@ -598,6 +604,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					} else {
 						if (headphonesActive) mRecordingThread.startRecording();
 						vol_part.setAlpha(1.0f);
+						mVolumeBar.setAlpha(1.0f);
+						mVolText.setAlpha(1.0f);
 						mVolDownButton.setEnabled(true);
 						mVolUpButton.setEnabled(true);
 
@@ -609,6 +617,8 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 					mMonButton.setText(R.string.mon_state_on);
 					mRecordingThread.stopRecording();
 					vol_part.setAlpha(.5f);
+					mVolumeBar.setAlpha(.5f);
+					mVolText.setAlpha(.5f);
 					mVolDownButton.setEnabled(false);
 					mVolUpButton.setEnabled(false);
 
