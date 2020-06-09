@@ -44,6 +44,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 //import android.support.v4.content.ContextCompat;
@@ -99,216 +100,245 @@ import static ch.kentai.android.soundingsoil.viewmodels.BlinkyViewModel.getCurre
 @SuppressWarnings("ConstantConditions")
 public class BlinkyActivity extends AppCompatActivity implements ScannerFragment.OnDeviceSelectedListener, HelpFragment.OnFragmentInteractionListener {
 
-	private WaveformView mRealtimeWaveformView;
-	private RecordingThread mRecordingThread;
+    private WaveformView mRealtimeWaveformView;
+    private RecordingThread mRecordingThread;
 
 
-	public static final String EXTRA_DEVICE = "no.nordicsemi.android.blinky.EXTRA_DEVICE";
+    public static final String EXTRA_DEVICE = "no.nordicsemi.android.blinky.EXTRA_DEVICE";
 
-	private BlinkyViewModel mViewModel;
-
-
-	@BindView(R.id.data_sent_received) TextView mDataReceived;
-
-	@BindView(R.id.duration_text) EditText mDurationField;
-	@BindView(R.id.period_text) EditText mPeriodField;
-	@BindView(R.id.occurence_text) EditText mOccurenceField;
-
-	@BindView(R.id.mon_button) Button mMonButton;
-	@BindView(R.id.mon_state) TextView mMonState;
-
-	@BindView(R.id.connex_state) TextView mConnexState;
-
-	@BindView(R.id.rec_button) ImageButton mRecButton;
-	@BindView(R.id.rec_state) TextView mRecStateView;
-
-	@BindView(R.id.vol_up_button) ImageButton mVolUpButton;
-	@BindView(R.id.vol_down_button) ImageButton mVolDownButton;
-	@BindView(R.id.volumeBar) ProgressBar mVolumeBar;
-	@BindView(R.id.vol_text) TextView mVolText;
-
-	@BindView(R.id.status_req_button) Button mStatusReqButton;
-	@BindView(R.id.clear_mon_button) Button mClearButton;
-	@BindView(R.id.close_mon_button) Button mCloseButton;
-
-    @BindView(R.id.conn_button) Button mConnButton;
-	@BindView(R.id.rec_settings_reset_button) Button mSettingsResetButton;
-	@BindView(R.id.rec_settings_close_button) Button mSettingsCloseButton;
+    private BlinkyViewModel mViewModel;
 
 
-    @BindView(R.id.mon_button_part) LinearLayout mon_part;
-    @BindView(R.id.vol_control_part) LinearLayout vol_part;
+    @BindView(R.id.data_sent_received)
+    TextView mDataReceived;
 
-	@BindView(R.id.rec_time) TextView mRecTimeView;
-	@BindView(R.id.rec_time_next) TextView mRecTimeNextView;
-	@BindView(R.id.rec_number) TextView mRecNumberView;
-	@BindView(R.id.rec_number_part) LinearLayout mRecNumberPart;
-	@BindView(R.id.file_path_part) LinearLayout mFilePathPart;
+    @BindView(R.id.duration_text)
+    EditText mDurationField;
+    @BindView(R.id.period_text)
+    EditText mPeriodField;
+    @BindView(R.id.occurence_text)
+    EditText mOccurenceField;
 
-	@BindView(R.id.comm_log) LinearLayout commMonitor;
-	@BindView(R.id.rec_settings) LinearLayout recSettings;
+    @BindView(R.id.mon_button)
+    Button mMonButton;
+    @BindView(R.id.mon_state)
+    TextView mMonState;
 
-	@BindView(R.id.mon_state_led) ImageView monLED;
-	@BindView(R.id.connex_state_led) ImageView connexLED;
-	@BindView(R.id.help) View mHelp;
+    @BindView(R.id.connex_state)
+    TextView mConnexState;
+
+    @BindView(R.id.rec_button)
+    ImageButton mRecButton;
+    @BindView(R.id.rec_state)
+    TextView mRecStateView;
+
+    @BindView(R.id.vol_up_button)
+    ImageButton mVolUpButton;
+    @BindView(R.id.vol_down_button)
+    ImageButton mVolDownButton;
+    @BindView(R.id.volumeBar)
+    ProgressBar mVolumeBar;
+    @BindView(R.id.vol_text)
+    TextView mVolText;
+
+    @BindView(R.id.status_req_button)
+    Button mStatusReqButton;
+    @BindView(R.id.clear_mon_button)
+    Button mClearButton;
+    @BindView(R.id.close_mon_button)
+    Button mCloseButton;
+
+    @BindView(R.id.conn_button)
+    Button mConnButton;
+    @BindView(R.id.rec_settings_reset_button)
+    Button mSettingsResetButton;
+    @BindView(R.id.rec_settings_close_button)
+    Button mSettingsCloseButton;
+
+
+    @BindView(R.id.mon_button_part)
+    LinearLayout mon_part;
+    @BindView(R.id.vol_control_part)
+    LinearLayout vol_part;
+
+    @BindView(R.id.rec_time)
+    TextView mRecTimeView;
+    @BindView(R.id.rec_time_next)
+    TextView mRecTimeNextView;
+    @BindView(R.id.rec_number)
+    TextView mRecNumberView;
+    @BindView(R.id.rec_number_part)
+    LinearLayout mRecNumberPart;
+    @BindView(R.id.file_path_part)
+    LinearLayout mFilePathPart;
+
+    @BindView(R.id.comm_log)
+    LinearLayout commMonitor;
+    @BindView(R.id.rec_settings)
+    LinearLayout recSettings;
+
+    @BindView(R.id.mon_state_led)
+    ImageView monLED;
+    @BindView(R.id.connex_state_led)
+    ImageView connexLED;
+    @BindView(R.id.help)
+    View mHelp;
 
     private ObjectAnimator anim;
-	private static final String TAG = "BlinkyActivity";
+    private static final String TAG = "BlinkyActivity";
 
-	private ProgressBar pg;
+    private ProgressBar pg;
 
-	private static final int REQUEST_CODE = 0;
-	static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
-	public  int recTime = 0;
-	private  int nextRecTime = 0;
-	private int recState = 0;
+    private static final int REQUEST_CODE = 0;
+    static final String[] PERMISSIONS = new String[]{Manifest.permission.RECORD_AUDIO};
+    public int recTime = 0;
+    private int nextRecTime = 0;
+    private int recState = 0;
 
-	private boolean recSettingsEditable = false;
+    private boolean recSettingsEditable = false;
 
-	private String mLatitude;
-	private String mLongitude;
+    private String mLatitude;
+    private String mLongitude;
 
-	MenuItem connectItem;
-	MenuItem locationItem;
+    MenuItem connectItem;
+    MenuItem locationItem;
 
-	Drawable redConnectIcon;
-	Drawable greenConnectIcon;
+    Drawable redConnectIcon;
+    Drawable greenConnectIcon;
 
-	Drawable redLocationIcon;
-	Drawable greenLocationIcon;
-
-
-	private BroadcastReceiver mHeadphoneReceiver;
-
-	private boolean headphonesActive;
+    Drawable redLocationIcon;
+    Drawable greenLocationIcon;
 
 
+    private BroadcastReceiver mHeadphoneReceiver;
 
-	@Override
-	protected void onCreate(final Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		//setContentView(R.layout.activity_blinky);
-
-		final Intent intent = getIntent();
-		final DiscoveredBluetoothDevice device = intent.getParcelableExtra(EXTRA_DEVICE);
-		final String deviceName = device.getName();
-		final String deviceAddress = device.getAddress();
-
-		// Configure the view model
-		mViewModel = ViewModelProviders.of(this).get(BlinkyViewModel.class);
-		mViewModel.connect(device);
-
-		ActivityBlinkyBinding binding =
-				DataBindingUtil.setContentView(this, R.layout.activity_blinky);
-		binding.setLifecycleOwner(this);
-		binding.setViewmodel(mViewModel);
-
-		ButterKnife.bind(this);
-
-		final Toolbar toolbar = findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
-		getSupportActionBar().setTitle(deviceName.toUpperCase());
-		//getSupportActionBar().setSubtitle(deviceAddress);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-		// Set up views
-		final LinearLayout progressContainer = findViewById(R.id.progress_container);
-		final TextView connectionState = findViewById(R.id.connection_state);
-		final View content = findViewById(R.id.device_container);
-		final View notSupported = findViewById(R.id.not_supported);
+    private boolean headphonesActive;
 
 
-		final Animation animation = new AlphaAnimation(1, 0); // Change alpha from fully visible to invisible
-		animation.setDuration(500); // duration - half a second
-		animation.setInterpolator(new LinearInterpolator()); // do not alter animation rate
-		animation.setRepeatCount(Animation.INFINITE); // Repeat animation infinitely
-		animation.setRepeatMode(Animation.REVERSE); // Reverse animation at the end so the button will fade back in
+    @Override
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		pg = findViewById(R.id.volumeBar);
+        //setContentView(R.layout.activity_blinky);
+
+        final Intent intent = getIntent();
+        final DiscoveredBluetoothDevice device = intent.getParcelableExtra(EXTRA_DEVICE);
+        final String deviceName = device.getName();
+        final String deviceAddress = device.getAddress();
+
+        // Configure the view model
+        mViewModel = ViewModelProviders.of(this).get(BlinkyViewModel.class);
+        mViewModel.connect(device);
+
+        ActivityBlinkyBinding binding =
+                DataBindingUtil.setContentView(this, R.layout.activity_blinky);
+        binding.setLifecycleOwner(this);
+        binding.setViewmodel(mViewModel);
+
+        ButterKnife.bind(this);
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(deviceName.toUpperCase());
+        //getSupportActionBar().setSubtitle(deviceAddress);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        // Set up views
+        final LinearLayout progressContainer = findViewById(R.id.progress_container);
+        final TextView connectionState = findViewById(R.id.connection_state);
+        final View content = findViewById(R.id.device_container);
+        final View notSupported = findViewById(R.id.not_supported);
 
 
-		commMonitor.setVisibility(View.GONE);
-		recSettings.setVisibility(View.GONE);
+        final Animation animation = new AlphaAnimation(1, 0); // Change alpha from fully visible to invisible
+        animation.setDuration(500); // duration - half a second
+        animation.setInterpolator(new LinearInterpolator()); // do not alter animation rate
+        animation.setRepeatCount(Animation.INFINITE); // Repeat animation infinitely
+        animation.setRepeatMode(Animation.REVERSE); // Reverse animation at the end so the button will fade back in
 
-		mRealtimeWaveformView = (WaveformView) findViewById(R.id.waveformView);
-		mRecordingThread = new RecordingThread(getApplicationContext(), new AudioDataReceivedListener() {
-			@Override
-			public void onAudioDataReceived(short[] data) {
-				mRealtimeWaveformView.setSamples(data);
-			}
-		});
+        pg = findViewById(R.id.volumeBar);
+
+
+        commMonitor.setVisibility(View.GONE);
+        recSettings.setVisibility(View.GONE);
+
+        mRealtimeWaveformView = (WaveformView) findViewById(R.id.waveformView);
+        mRecordingThread = new RecordingThread(getApplicationContext(), new AudioDataReceivedListener() {
+            @Override
+            public void onAudioDataReceived(short[] data) {
+                mRealtimeWaveformView.setSamples(data);
+            }
+        });
 
         Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				//mRecordingSamplerReady = true;
-			}
-		}, 1000);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                //mRecordingSamplerReady = true;
+            }
+        }, 1000);
 
-		// delay latlong request
-		final Handler handler1 = new Handler();
-		handler1.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				getLatLong();
-			}
-		}, 1000);
+        // delay latlong request
+        final Handler handler1 = new Handler();
+        handler1.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getLatLong();
+            }
+        }, 1000);
 
 
+        Thread recTimer = new Thread() {
+            @Override
+            public void run() {
 
-		Thread recTimer = new Thread() {
-			@Override
-			public void run() {
-
-				while(!isInterrupted()) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						if (recState == 1) {
-							// waiting: display next rec time
-						} else if (recState == 2) {
-							int rec_dur;
-							try {
-								rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
-							} catch (NumberFormatException e) {
-								rec_dur = 0;
-							}
-							if(rec_dur != 0) {
-								mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
-							} else {
-								mRecTimeView.setText("CONTINUOUS RECORDING");
-							}
-						} else {
+                while (!isInterrupted()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (recState == 1) {
+                                // waiting: display next rec time
+                            } else if (recState == 2) {
+                                int rec_dur;
+                                try {
+                                    rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
+                                } catch (NumberFormatException e) {
+                                    rec_dur = 0;
+                                }
+                                if (rec_dur != 0) {
+                                    mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
+                                } else {
+                                    mRecTimeView.setText("CONTINUOUS RECORDING");
+                                }
+                            } else {
 //							recTime = rec_dur;							// state stopped
-							mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
-						}
-					}
-				});
+                                mRecTimeView.setText("REMAINING TIME: " + recTime + " s");
+                            }
+                        }
+                    });
 
-				if (recState == 2 || recState == 1) {
-					// state recording or waiting
-					if (recTime > 0) {
-						recTime -= 1;
-					}
-				} else {
-					// state stopped or preparing
-					try {
-						recTime = Integer.parseInt(mViewModel.getDuration().getValue()) - 1;
-					} catch (NumberFormatException e) {
-					}
-				}
+                    if (recState == 2 || recState == 1) {
+                        // state recording or waiting
+                        if (recTime > 0) {
+                            recTime -= 1;
+                        }
+                    } else {
+                        // state stopped or preparing
+                        try {
+                            recTime = Integer.parseInt(mViewModel.getDuration().getValue()) - 1;
+                        } catch (NumberFormatException e) {
+                        }
+                    }
 
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					throw new IllegalStateException(e);
-				}
-			}
-			}
-		};
-		recTimer.start();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+            }
+        };
+        recTimer.start();
 
 
 //		try {
@@ -320,149 +350,146 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 //		}
 
 
-		mHeadphoneReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG))
-				{
-					int state = intent.getIntExtra("state", -1);
-					Toast toast;
-					switch (state) {
-						case 0:
-							Log.d("HeadphoneMonitor", "Headset is unplugged");
-							toast = Toast.makeText(context,"Headset is unplugged", Toast.LENGTH_LONG);
-							toast.setGravity(Gravity.BOTTOM, 0, 220);
-							toast.show();
-							headphonesActive=false;
-							mRecordingThread.stopRecording();
-							break;
-						case 1:
-							Log.d("HeadphoneMonitor", "Headset is plugged in");
-							toast = Toast.makeText(context,"Headset is plugged in", Toast.LENGTH_LONG);
-							toast.setGravity(Gravity.BOTTOM, 0, 220);
-							toast.show();
-							headphonesActive=true;
+        mHeadphoneReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+                    int state = intent.getIntExtra("state", -1);
+                    Toast toast;
+                    switch (state) {
+                        case 0:
+                            Log.d("HeadphoneMonitor", "Headset is unplugged");
+                            toast = Toast.makeText(context, "Headset is unplugged", Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.BOTTOM, 0, 220);
+                            toast.show();
+                            headphonesActive = false;
+                            mRecordingThread.stopRecording();
+                            break;
+                        case 1:
+                            Log.d("HeadphoneMonitor", "Headset is plugged in");
+                            toast = Toast.makeText(context, "Headset is plugged in", Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.BOTTOM, 0, 220);
+                            toast.show();
+                            headphonesActive = true;
 
-							if (mViewModel.getMonState().getValue() && 	!mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected") ) {
-								mRecordingThread.startRecording();
-							}
-							break;
-						default:
-							Log.d("HeadphoneMonitor", "I have no idea what the headset state is");
-							break;
-					}
+                            if (mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+                                mRecordingThread.startRecording();
+                            }
+                            break;
+                        default:
+                            Log.d("HeadphoneMonitor", "I have no idea what the headset state is");
+                            break;
+                    }
 
-					// push this event onto the queue to be processed by the Handler
-					//Message msg = uiHandler.obtainMessage(HEADPHONE_EVENT);
-					//MyApp.uiHandler.sendMessage(msg);
-				}
-			}
-		};
-
+                    // push this event onto the queue to be processed by the Handler
+                    //Message msg = uiHandler.obtainMessage(HEADPHONE_EVENT);
+                    //MyApp.uiHandler.sendMessage(msg);
+                }
+            }
+        };
 
 
-		mDurationField.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-			}
+        mDurationField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-			}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
-			@Override
-			public void afterTextChanged(Editable s) {
-				try {
-					mViewModel.setDuration(s.toString());
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    mViewModel.setDuration(s.toString());
 
-				} catch (NumberFormatException nfe) {
-					Log.d(TAG, "period error");
-				}
-			}
-		});
+                } catch (NumberFormatException nfe) {
+                    Log.d(TAG, "period error");
+                }
+            }
+        });
 
-		mPeriodField.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        mPeriodField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-			}
+            }
 
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-			}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
-			@Override
-			public void afterTextChanged(Editable s) {
-				try {
-					mViewModel.setPeriod(s.toString());
-				} catch (NumberFormatException nfe) {
-					Log.d(TAG, "period error");
-				}
-			}
-		});
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    mViewModel.setPeriod(s.toString());
+                } catch (NumberFormatException nfe) {
+                    Log.d(TAG, "period error");
+                }
+            }
+        });
 
-		mOccurenceField.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        mOccurenceField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-			}
+            }
 
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-			}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
-			@Override
-			public void afterTextChanged(Editable s) {
-				try {
-					mViewModel.setOccurence(s.toString());
-				} catch (NumberFormatException nfe) {
-					Log.d(TAG, "period error");
-				}
-			}
-		});
-
-
-		mMonButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mViewModel.toggleMon();
-			}
-		});
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    mViewModel.setOccurence(s.toString());
+                } catch (NumberFormatException nfe) {
+                    Log.d(TAG, "period error");
+                }
+            }
+        });
 
 
-		mRecButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-
-				if (mViewModel.getRecState().getValue() == 0) {	// rec stopped
-
-					getLatLong();
-
-					// check if no latlong at all
-					if (mLatitude == "" || mLongitude == "") {
-						showAlertDialogNoLocation();
-					}
-				}
-
-				mViewModel.toggleRec();
-			}
-		});
-
-		mStatusReqButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mViewModel.requestDeviceStatus();
-			}
-		});
+        mMonButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.toggleMon();
+            }
+        });
 
 
+        mRecButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-		mClearButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mViewModel.clearDataSentReceived();
-			}
-		});
+                if (mViewModel.getRecState().getValue() == 0) {    // rec stopped
+
+                    getLatLong();
+
+                    // check if no latlong at all
+                    if (mLatitude == "" || mLongitude == "") {
+                        showAlertDialogNoLocation();
+                    }
+                }
+
+                mViewModel.toggleRec();
+            }
+        });
+
+        mStatusReqButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.requestDeviceStatus();
+            }
+        });
+
+
+        mClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.clearDataSentReceived();
+            }
+        });
 
 
         mCloseButton.setOnClickListener(new View.OnClickListener() {
@@ -472,671 +499,659 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
             }
         });
 
-		mSettingsResetButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mDurationField.setText("300");
-				mPeriodField.setText("3600");
-				mOccurenceField.setText("24");
-				mViewModel.sendRwinParams();
-			}
-		});
-
-		mSettingsCloseButton.setOnClickListener((v -> {
-
-				recSettings.setVisibility(View.GONE);
-				hideKeyboard(this);
-
-		}));
-
-
-		mVolUpButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mViewModel.sendStringToBlinkyManager("vol +");
-			}
-		}
-		));
-
-
-		mVolDownButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				mViewModel.sendStringToBlinkyManager("vol -");
-			}
-		}
-		));
-
-
-		mConnButton.setOnClickListener((v -> {
-			// check BT status. if connected -> disconnect
-			String btState = mViewModel.getBTStateChanged().getValue();
-			if(btState != null) {
-				if(btState.equalsIgnoreCase("disconnected")) {
-					mViewModel.sendStringToBlinkyManager("inq");
-					showDeviceScanningDialog();
-				} else {
-					mViewModel.sendStringToBlinkyManager("disc");
-				}
-			}
-		}));
-
-
-
-		// observe -----------------------
-		mViewModel.getBTStateChanged().observe(this, btState -> {
-			Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
-
-			if(btState.equalsIgnoreCase("disconnected")) {
-				mRecordingThread.stopRecording();
-				// turn off monitor if on
-				if (mViewModel.getMonState().getValue()) {
-					mViewModel.toggleMon();
-				}
-				connexLED.setColorFilter(Color.argb(255, 166, 51, 51));
-				mConnexState.setText(" ");
-
-				final Handler handler = new Handler();
-				handler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						vol_part.setAlpha(.5f);
-						mVolumeBar.setAlpha(.0f);
-						mVolText.setAlpha(.0f);
-						mVolDownButton.setEnabled(false);
-						mVolUpButton.setEnabled(false);
-						mConnButton.setText("CONNECT");
-					}
-				}, 500);
-
-			} else { // connected
-                mConnButton.setText("DISCONNECT");
-				mConnexState.setText(btState.toUpperCase());
-				connexLED.setColorFilter(Color.GREEN);
-
-				dismissDeviceScanningDialog();
-
-				if (mViewModel.getMonState().getValue()) {	// monitor on
-					vol_part.setAlpha(1.0f);
-					mVolumeBar.setAlpha(1.0f);
-					mVolText.setAlpha(1.0f);
-					mVolDownButton.setEnabled(true);
-					mVolUpButton.setEnabled(true);
-					if (headphonesActive) mRecordingThread.startRecording();
-				}
+        mSettingsResetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDurationField.setText("300");
+                mPeriodField.setText("3600");
+                mOccurenceField.setText("24");
+                mViewModel.sendRwinParams();
             }
-			Log.d(TAG, "Audio BT state: " + btState);
-		});
+        });
 
-		mViewModel.isDeviceReady().observe(this, deviceReady -> {
-			progressContainer.setVisibility(View.GONE);
-			//content.setVisibility(View.VISIBLE);
-			mViewModel.requestDeviceStatus();
-			Log.d(TAG, "device ready: " + deviceReady);
-		});
+        mSettingsCloseButton.setOnClickListener((v -> {
 
-		mViewModel.getConnectionState().observe(this, text -> {
-			if (text != null) {
-				progressContainer.setVisibility(View.VISIBLE);
-				notSupported.setVisibility(View.GONE);
-				connectionState.setText(text);
-				Log.d(TAG, "connection state: " + text);
-			}
-		});
+            recSettings.setVisibility(View.GONE);
+            hideKeyboard(this);
 
-		mViewModel.isConnected().observe(this, this::onConnectionStateChanged);
+        }));
 
-		mViewModel.isSupported().observe(this, supported -> {
-			if (!supported) {
-				progressContainer.setVisibility(View.GONE);
-				notSupported.setVisibility(View.VISIBLE);
-			}
-		});
 
-		mViewModel.getMonState().observe(this, isOn -> {
-			//mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
-				if (isOn) 	{
-					monLED.setColorFilter(Color.GREEN);
-					mMonButton.setText(R.string.mon_state_off);
+        mVolUpButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.sendStringToBlinkyManager("vol +");
+            }
+        }
+        ));
 
-					if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
 
-					} else {
-						if (headphonesActive) mRecordingThread.startRecording();
-						vol_part.setAlpha(1.0f);
-						mVolumeBar.setAlpha(1.0f);
-						mVolText.setAlpha(1.0f);
-						mVolDownButton.setEnabled(true);
-						mVolUpButton.setEnabled(true);
+        mVolDownButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.sendStringToBlinkyManager("vol -");
+            }
+        }
+        ));
 
-					}
-				}
-				else {
-					monLED.setColorFilter(Color.argb(255, 166, 51, 51));
 
-					mMonButton.setText(R.string.mon_state_on);
-					mRecordingThread.stopRecording();
-					vol_part.setAlpha(.5f);
-					mVolumeBar.setAlpha(.5f);
-					mVolText.setAlpha(.5f);
-					mVolDownButton.setEnabled(false);
-					mVolUpButton.setEnabled(false);
+        mConnButton.setOnClickListener((v -> {
+            // check BT status. if connected -> disconnect
+            String btState = mViewModel.getBTStateChanged().getValue();
+            if (btState != null) {
+                if (btState.equalsIgnoreCase("disconnected")) {
+                    mViewModel.sendStringToBlinkyManager("inq");
+                    showDeviceScanningDialog();
+                } else {
+                    mViewModel.sendStringToBlinkyManager("disc");
+                }
+            }
+        }));
 
-				}
-		});
 
-		mViewModel.getRecState().observe(this, state -> {
-			recState = state;
-			if (state == 0) {
-				mRecStateView.setText(R.string.rec_state_off);
-				this.manageBlinkEffect(false);
+        // observe -----------------------
+        mViewModel.getBTStateChanged().observe(this, btState -> {
+            Log.d(TAG, "Audio Monitor state: " + mViewModel.getMonState().getValue());
+
+            if (btState.equalsIgnoreCase("disconnected")) {
+                mRecordingThread.stopRecording();
+                // turn off monitor if on
+                if (mViewModel.getMonState().getValue()) {
+                    mViewModel.toggleMon();
+                }
+                connexLED.setColorFilter(Color.argb(255, 166, 51, 51));
+                mConnexState.setText(" ");
+
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        vol_part.setAlpha(.5f);
+                        mVolumeBar.setAlpha(.0f);
+                        mVolText.setAlpha(.0f);
+                        mVolDownButton.setEnabled(false);
+                        mVolUpButton.setEnabled(false);
+                        mConnButton.setText("CONNECT");
+                    }
+                }, 500);
+
+            } else { // connected
+                mConnButton.setText("DISCONNECT");
+                mConnexState.setText(btState.toUpperCase());
+                connexLED.setColorFilter(Color.GREEN);
+
+                dismissDeviceScanningDialog();
+
+                if (mViewModel.getMonState().getValue()) {    // monitor on
+                    vol_part.setAlpha(1.0f);
+                    mVolumeBar.setAlpha(1.0f);
+                    mVolText.setAlpha(1.0f);
+                    mVolDownButton.setEnabled(true);
+                    mVolUpButton.setEnabled(true);
+                    if (headphonesActive) mRecordingThread.startRecording();
+                }
+            }
+            Log.d(TAG, "Audio BT state: " + btState);
+        });
+
+        mViewModel.isDeviceReady().observe(this, deviceReady -> {
+            progressContainer.setVisibility(View.GONE);
+            //content.setVisibility(View.VISIBLE);
+            mViewModel.requestDeviceStatus();
+            Log.d(TAG, "device ready: " + deviceReady);
+        });
+
+        mViewModel.getConnectionState().observe(this, text -> {
+            if (text != null) {
+                progressContainer.setVisibility(View.VISIBLE);
+                notSupported.setVisibility(View.GONE);
+                connectionState.setText(text);
+                Log.d(TAG, "connection state: " + text);
+            }
+        });
+
+        mViewModel.isConnected().observe(this, this::onConnectionStateChanged);
+
+        mViewModel.isSupported().observe(this, supported -> {
+            if (!supported) {
+                progressContainer.setVisibility(View.GONE);
+                notSupported.setVisibility(View.VISIBLE);
+            }
+        });
+
+        mViewModel.getMonState().observe(this, isOn -> {
+            //mMonState.setText(isOn ? R.string.mon_state_on : R.string.mon_state_off);
+            if (isOn) {
+                monLED.setColorFilter(Color.GREEN);
+                mMonButton.setText(R.string.mon_state_off);
+
+                if (mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected")) {
+
+                } else {
+                    if (headphonesActive) mRecordingThread.startRecording();
+                    vol_part.setAlpha(1.0f);
+                    mVolumeBar.setAlpha(1.0f);
+                    mVolText.setAlpha(1.0f);
+                    mVolDownButton.setEnabled(true);
+                    mVolUpButton.setEnabled(true);
+
+                }
+            } else {
+                monLED.setColorFilter(Color.argb(255, 166, 51, 51));
+
+                mMonButton.setText(R.string.mon_state_on);
+                mRecordingThread.stopRecording();
+                vol_part.setAlpha(.5f);
+                mVolumeBar.setAlpha(.5f);
+                mVolText.setAlpha(.5f);
+                mVolDownButton.setEnabled(false);
+                mVolUpButton.setEnabled(false);
+
+            }
+        });
+
+        mViewModel.getRecState().observe(this, state -> {
+            recState = state;
+            if (state == 0) {
+                mRecStateView.setText(R.string.rec_state_off);
+                this.manageBlinkEffect(false);
 //				mRecButton.setColorFilter(Color.argb(55, 0, 0, 0));
-				mRecButton.setColorFilter(Color.argb(255, 166, 51, 51));
-				//mRecStateView.setBackgroundColor(Color.WHITE);
-				mRecNumberPart.setVisibility(View.GONE);
-				mFilePathPart.setVisibility(View.GONE);
-				mRecTimeView.setVisibility(View.GONE);
-				mRecTimeNextView.setVisibility(View.GONE);
-			}
-			else if (state == 1) {
-				mRecStateView.setText(R.string.rec_state_wait);
-				this.manageBlinkEffect(true);
-				// request time of next record to set wait countdown timer
-				mRecNumberPart.setVisibility(View.GONE);
-				mFilePathPart.setVisibility(View.GONE);
-				mRecTimeView.setVisibility(View.GONE);
-				mRecTimeNextView.setVisibility(View.VISIBLE);
-			}
-			else if(state == 2) {
-				mRecStateView.setText(R.string.rec_state_on);
-				this.manageBlinkEffect(false);
-				//mRecStateView.setBackgroundColor(Color.RED);
-				mRecButton.setColorFilter(Color.argb(255, 250, 69, 32));
-				mRecNumberPart.setVisibility(View.VISIBLE);
-				mFilePathPart.setVisibility(View.VISIBLE);
-				mRecTimeView.setVisibility(View.VISIBLE);
-				mRecTimeNextView.setVisibility(View.GONE);
-			}
-			else if(state == 3) {
-				mRecStateView.setText(R.string.rec_state_preparing);
-				this.manageBlinkEffect(true);
-				//mRecStateView.setBackgroundColor(Color.RED);
-			}
-		});
+                mRecButton.setColorFilter(Color.argb(255, 166, 51, 51));
+                //mRecStateView.setBackgroundColor(Color.WHITE);
+                mRecNumberPart.setVisibility(View.GONE);
+                mFilePathPart.setVisibility(View.GONE);
+                mRecTimeView.setVisibility(View.GONE);
+                mRecTimeNextView.setVisibility(View.GONE);
+            } else if (state == 1) {
+                mRecStateView.setText(R.string.rec_state_wait);
+                this.manageBlinkEffect(true);
+                // request time of next record to set wait countdown timer
+                mRecNumberPart.setVisibility(View.GONE);
+                mFilePathPart.setVisibility(View.GONE);
+                mRecTimeView.setVisibility(View.GONE);
+                mRecTimeNextView.setVisibility(View.VISIBLE);
+            } else if (state == 2) {
+                mRecStateView.setText(R.string.rec_state_on);
+                this.manageBlinkEffect(false);
+                //mRecStateView.setBackgroundColor(Color.RED);
+                mRecButton.setColorFilter(Color.argb(255, 250, 69, 32));
+                mRecNumberPart.setVisibility(View.VISIBLE);
+                mFilePathPart.setVisibility(View.VISIBLE);
+                mRecTimeView.setVisibility(View.VISIBLE);
+                mRecTimeNextView.setVisibility(View.GONE);
+            } else if (state == 3) {
+                mRecStateView.setText(R.string.rec_state_preparing);
+                this.manageBlinkEffect(true);
+                //mRecStateView.setBackgroundColor(Color.RED);
+            }
+        });
 
-		mViewModel.getRecNumber().observe(this, recNumber -> {
-			Log.d(TAG, "Rec Number: " + recNumber);
+        mViewModel.getRecNumber().observe(this, recNumber -> {
+            Log.d(TAG, "Rec Number: " + recNumber);
             int rec_dur, rec_occ;
             try {
-				rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
-				Log.d(TAG, "Rec duration: " + rec_dur);
-			} catch (NumberFormatException e) {
-				rec_dur = 0;
-			}
+                rec_dur = Integer.parseInt(mViewModel.getDuration().getValue());
+                Log.d(TAG, "Rec duration: " + rec_dur);
+            } catch (NumberFormatException e) {
+                rec_dur = 0;
+            }
             try {
-				rec_occ = Integer.parseInt(mViewModel.getOccurence().getValue());
-				Log.d(TAG, "Rec occurence: " + rec_occ);
-			} catch (NumberFormatException e) {
-				rec_occ = 0;
-			}
-            if(rec_dur == 0)
-            	mRecNumberView.setText(" 1 of 1");
-            else if(rec_occ == 0)
-				mRecNumberView.setText(" " + recNumber);
-			else
-				mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
-		});
+                rec_occ = Integer.parseInt(mViewModel.getOccurence().getValue());
+                Log.d(TAG, "Rec occurence: " + rec_occ);
+            } catch (NumberFormatException e) {
+                rec_occ = 0;
+            }
+            if (rec_dur == 0)
+                mRecNumberView.setText(" 1 of 1");
+            else if (rec_occ == 0)
+                mRecNumberView.setText(" " + recNumber);
+            else
+                mRecNumberView.setText(" " + recNumber + " of " + mViewModel.getOccurence().getValue());
+        });
 
-		mViewModel.getNextRecTime().observe(this, nextRectimeString -> {
-			Log.d(TAG, "Next Rec Time: " + nextRectimeString);
-			int nRecTime = Integer.parseInt(nextRectimeString);
-			long now = System.currentTimeMillis() / 1000;
-			now += getCurrentTimezoneOffset();		// add time zone offset
-			nextRecTime = nRecTime - (int)now;
+        mViewModel.getNextRecTime().observe(this, nextRectimeString -> {
+            Log.d(TAG, "Next Rec Time: " + nextRectimeString);
+            int nRecTime = Integer.parseInt(nextRectimeString);
+            long now = System.currentTimeMillis() / 1000;
+            now += getCurrentTimezoneOffset();        // add time zone offset
+            nextRecTime = nRecTime - (int) now;
 
-			// convert seconds to milliseconds
-			Date date = new java.util.Date(nRecTime*1000L);
-			// the format of your date
-			SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm:ss");
-			// give a timezone reference for formatting (see comment at the bottom)
-			sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
-			String formattedDate = sdf.format(date);
-			mRecTimeNextView.setText("NEXT RECORD AT: " + formattedDate);
-			Log.d(TAG, "Next Rec in: " + nextRecTime + "s / " + formattedDate);
-		});
+            // convert seconds to milliseconds
+            Date date = new java.util.Date(nRecTime * 1000L);
+            // the format of your date
+            SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm:ss");
+            // give a timezone reference for formatting (see comment at the bottom)
+            sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+            String formattedDate = sdf.format(date);
+            mRecTimeNextView.setText("NEXT RECORD AT: " + formattedDate);
+            Log.d(TAG, "Next Rec in: " + nextRecTime + "s / " + formattedDate);
+        });
 
-		mViewModel.getRecRem().observe(this, recRemString -> {
-			try {
-				recTime = (int)Integer.parseInt(recRemString);
-				Log.d(TAG, "Rec remaining: " + recTime);
-			} catch (NumberFormatException e) {
+        mViewModel.getRecRem().observe(this, recRemString -> {
+            try {
+                recTime = (int) Integer.parseInt(recRemString);
+                Log.d(TAG, "Rec remaining: " + recTime);
+            } catch (NumberFormatException e) {
 
-			}
-		});
+            }
+        });
 
-		mViewModel.getTimeReq().observe(this, timeReqString -> {
-			if(timeReqString.equalsIgnoreCase("?")) {
-				Log.d(TAG, "Time request!");
-				mViewModel.sendCurrentTime();
-			}
-		});
+        mViewModel.getTimeReq().observe(this, timeReqString -> {
+            if (timeReqString.equalsIgnoreCase("?")) {
+                Log.d(TAG, "Time request!");
+                mViewModel.sendCurrentTime();
+            }
+        });
 
-		mViewModel.getLatlongReq().observe(this, latlongReqString -> {
-			if(latlongReqString.equalsIgnoreCase("?")) {
-				Log.d(TAG, "Latlong request!");
-				mViewModel.sendLatLong();
-			}
-		});
+        mViewModel.getLatlongReq().observe(this, latlongReqString -> {
+            if (latlongReqString.equalsIgnoreCase("?")) {
+                Log.d(TAG, "Latlong request!");
+                mViewModel.sendLatLong();
+            }
+        });
 
-		mViewModel.getFilepath().observe(this, path -> {
-			if (path.equalsIgnoreCase("--")) {
+        mViewModel.getFilepath().observe(this, path -> {
+            if (path.equalsIgnoreCase("--")) {
 
-			} else {
-				// compare timestamp e.g. /190507/175838.wav from filepath with current time and duration setting to set rec time countdown timer
-				int start = path.indexOf("/") + 1;
-				int end = path.indexOf(".wav");
-				if (start  < path.length() && end < path.length()) {
-					String inputTime = path.substring(start, end);
-					Log.d(TAG, "Rec Start time: " + inputTime);
+            } else {
+                // compare timestamp e.g. /190507/175838.wav from filepath with current time and duration setting to set rec time countdown timer
+                int start = path.indexOf("/") + 1;
+                int end = path.indexOf(".wav");
+                if (start < path.length() && end < path.length()) {
+                    String inputTime = path.substring(start, end);
+                    Log.d(TAG, "Rec Start time: " + inputTime);
 
-					SimpleDateFormat inputFormat = new SimpleDateFormat("yyMMdd/HHmmss");
-					Date recStartDate = null;
+                    SimpleDateFormat inputFormat = new SimpleDateFormat("yyMMdd/HHmmss");
+                    Date recStartDate = null;
 
-					try {
-						recStartDate = inputFormat.parse(inputTime);
-					} catch (ParseException e) {
-					}
+                    try {
+                        recStartDate = inputFormat.parse(inputTime);
+                    } catch (ParseException e) {
+                    }
 
-					// get local time
-					long now = System.currentTimeMillis();
-					long diff = (now - recStartDate.getTime()) / 1000;
-					Log.d(TAG, "Rec time difference: " + now + " - " + recStartDate.getTime() + " = "  + diff);
+                    // get local time
+                    long now = System.currentTimeMillis();
+                    long diff = (now - recStartDate.getTime()) / 1000;
+                    Log.d(TAG, "Rec time difference: " + now + " - " + recStartDate.getTime() + " = " + diff);
 
-					int dur;
-					try {
-						dur = Integer.parseInt(mViewModel.getDuration().getValue());
-						Log.d(TAG, "Rec Duration: " + dur);
-					}
-					catch (NumberFormatException e)
-					{
-						dur = 0;
-					}
+                    int dur;
+                    try {
+                        dur = Integer.parseInt(mViewModel.getDuration().getValue());
+                        Log.d(TAG, "Rec Duration: " + dur);
+                    } catch (NumberFormatException e) {
+                        dur = 0;
+                    }
 
-					if (dur != 0) {
-						// not endless recording duration
-						// reset the countdown
-						recTime = dur - (int)(diff);
-						Log.d(TAG, "remaining rec time: " + recTime);
-					} else {
-						recTime = 0;
-					}
-				}
-			}
-			Log.d(TAG, "Filepath: " + path);
-		});
+                    if (dur != 0) {
+                        // not endless recording duration
+                        // reset the countdown
+                        recTime = dur - (int) (diff);
+                        Log.d(TAG, "remaining rec time: " + recTime);
+                    } else {
+                        recTime = 0;
+                    }
+                }
+            }
+            Log.d(TAG, "Filepath: " + path);
+        });
 
-		mViewModel.getVolume().observe(this, string -> {
-			try {
-				int vol = (int)Float.parseFloat(string);
-				pg.setProgress(vol);
-				Log.d(TAG, "BT Vol: " + vol);
-			} catch (NumberFormatException e) {
+        mViewModel.getVolume().observe(this, string -> {
+            try {
+                int vol = (int) Float.parseFloat(string);
+                pg.setProgress(vol);
+                Log.d(TAG, "BT Vol: " + vol);
+            } catch (NumberFormatException e) {
 
-			}
-		});
+            }
+        });
 
-		mViewModel.getLatitude().observe(this, string
-				-> {
-			mLatitude = string;
-			if (mLatitude != "" && mLongitude != "") {
-				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
-			} else {
-				if (locationItem != null) locationItem.setIcon(redLocationIcon);
-			}
+        mViewModel.getLatitude().observe(this, string
+                -> {
+            mLatitude = string;
+            if (mLatitude != "" && mLongitude != "") {
+                if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+            } else {
+                if (locationItem != null) locationItem.setIcon(redLocationIcon);
+            }
 
-		});
+        });
 
-		mViewModel.getLongitude().observe(this, string
-				-> {
-			mLongitude = string;
-			if (mLatitude != "" && mLongitude != "") {
-				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
-			} else {
-				if (locationItem != null) locationItem.setIcon(redLocationIcon);
-			}
-		});
+        mViewModel.getLongitude().observe(this, string
+                -> {
+            mLongitude = string;
+            if (mLatitude != "" && mLongitude != "") {
+                if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+            } else {
+                if (locationItem != null) locationItem.setIcon(redLocationIcon);
+            }
+        });
 
-		mViewModel.getDataReceived().observe(this, string
-				-> {
-		});
+        mViewModel.getDataReceived().observe(this, string
+                -> {
+        });
 
-		mViewModel.getDataSent().observe(this, string
-				-> {
-		});
+        mViewModel.getDataSent().observe(this, string
+                -> {
+        });
 
-		mViewModel.getDataSentReceived().observe(this, string
-				-> {
-			mDataReceived.setText("");
-			for (String str : string) {
-				mDataReceived.append(str + "\n");
-			}
-		});
+        mViewModel.getDataSentReceived().observe(this, string
+                -> {
+            mDataReceived.setText("");
+            for (String str : string) {
+                mDataReceived.append(str + "\n");
+            }
+        });
 
-		anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 166, 51, 51), Color.argb(255, 250, 69, 32));
+        anim = ObjectAnimator.ofInt(mRecButton, "colorFilter", Color.argb(255, 166, 51, 51), Color.argb(255, 250, 69, 32));
 
-	}
+    }
 
 
-	@Override
-	public void onDeviceSelected(final SimpleBluetoothDevice device) {
-		mViewModel.sendStringToBlinkyManager("conn " + device.name);
-	}
+    @Override
+    public void onDeviceSelected(final SimpleBluetoothDevice device) {
+        mViewModel.sendStringToBlinkyManager("conn " + device.name);
+    }
 
-	@Override
-	public void onDialogCanceled() {
-		// do nothing
-	}
-
-
-
-	@OnClick(R.id.action_clear_cache)
-	public void onTryAgainClicked() {
-		mViewModel.reconnect();
-	}
-
-	public static void enableDisableViewGroup(ViewGroup viewGroup, boolean enabled) {
-		int childCount = viewGroup.getChildCount();
-		for (int i = 0; i < childCount; i++) {
-			View view = viewGroup.getChildAt(i);
-			view.setEnabled(enabled);
-			if (view instanceof ViewGroup) {
-				enableDisableViewGroup((ViewGroup) view, enabled);
-			}
-		}
-	}
+    @Override
+    public void onDialogCanceled() {
+        // do nothing
+    }
 
 
+    @OnClick(R.id.action_clear_cache)
+    public void onTryAgainClicked() {
+        mViewModel.reconnect();
+    }
 
-	private void onConnectionStateChanged(final boolean connected) {
-		Log.d(TAG, "connex state changed: " + connected);
-		final View content = findViewById(R.id.device_container);
-		if (connected) {
-			//mViewModel.requestDeviceStatus();
-			content.setAlpha(1);
-			enableDisableViewGroup((ViewGroup) content, true);
-
-			if(greenConnectIcon != null) {
-				connectItem.setIcon(greenConnectIcon);
-			}
-
-		}
-		else {
-			content.setAlpha(0.4f);
-			enableDisableViewGroup((ViewGroup) content, false);
-
-			if(redConnectIcon != null) {
-				connectItem.setIcon(redConnectIcon);
-			}
-		}
-	}
-
-	private void manageBlinkEffect(boolean isOn) {
-		if (isOn) {
-			anim.setDuration(1000);
-			anim.setEvaluator(new ArgbEvaluator());
-			anim.setRepeatMode(ValueAnimator.REVERSE);
-			anim.setRepeatCount(ValueAnimator.INFINITE);
-			anim.start();
-		} else {
-			anim.end();
-		}
-	}
-
-	private void showDeviceScanningDialog() {
-		final ScannerFragment dialog = ScannerFragment.getInstance(); // Device that is advertising directly does not have the GENERAL_DISCOVERABLE nor LIMITED_DISCOVERABLE flag set.
-		dialog.show(getSupportFragmentManager(), "scan_fragment");
-	}
-
-	private void dismissDeviceScanningDialog() {
-
-		Fragment prev = getSupportFragmentManager().findFragmentByTag("scan_fragment");
-		if (prev != null) {
-			ScannerFragment df = (ScannerFragment) prev;
-			df.dismiss();
-		}
-	}
-
-	private void getLatLong() {
-
-		// check permission
-		if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-			LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-			boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-			Location location = null;
-
-			if (isNetworkEnabled) {
-				location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-			} else if (isGPSEnabled) {
-				location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			}
-
-			if (location != null) {
-				double longitude = location.getLongitude();
-				double latitude = location.getLatitude();
-
-				mLatitude = String.format("%.4f", latitude);
-				mLongitude = String.format("%.4f", longitude);
-
-				mViewModel.setLatitude(mLatitude);
-				mViewModel.setLongitude(mLongitude);
-
-			}
-
-			if (mLatitude != "" && mLongitude != "") {
-				if (locationItem != null) locationItem.setIcon(greenLocationIcon);
-			} else {
-				if (locationItem != null) locationItem.setIcon(redLocationIcon);
-			}
-
-		}
-
-	}
-
-	@Override
-	protected void onStop() {
-		super.onStop();
-	}
+    public static void enableDisableViewGroup(ViewGroup viewGroup, boolean enabled) {
+        int childCount = viewGroup.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View view = viewGroup.getChildAt(i);
+            view.setEnabled(enabled);
+            if (view instanceof ViewGroup) {
+                enableDisableViewGroup((ViewGroup) view, enabled);
+            }
+        }
+    }
 
 
-	@Override
-	protected void onPause() {
-		super.onPause();
+    private void onConnectionStateChanged(final boolean connected) {
+        Log.d(TAG, "connex state changed: " + connected);
+        final View content = findViewById(R.id.device_container);
+        if (connected) {
+            //mViewModel.requestDeviceStatus();
+            content.setAlpha(1);
+            enableDisableViewGroup((ViewGroup) content, true);
+
+            if (greenConnectIcon != null) {
+                connectItem.setIcon(greenConnectIcon);
+            }
+
+        } else {
+            content.setAlpha(0.4f);
+            enableDisableViewGroup((ViewGroup) content, false);
+
+            if (redConnectIcon != null) {
+                connectItem.setIcon(redConnectIcon);
+                onBackPressed();
+            }
+        }
+    }
+
+    private void manageBlinkEffect(boolean isOn) {
+        if (isOn) {
+            anim.setDuration(1000);
+            anim.setEvaluator(new ArgbEvaluator());
+            anim.setRepeatMode(ValueAnimator.REVERSE);
+            anim.setRepeatCount(ValueAnimator.INFINITE);
+            anim.start();
+        } else {
+            anim.end();
+        }
+    }
+
+    private void showDeviceScanningDialog() {
+    	Log.d(TAG, "Showing scanning dialog");
+        final ScannerFragment dialog = ScannerFragment.getInstance(); // Device that is advertising directly does not have the GENERAL_DISCOVERABLE nor LIMITED_DISCOVERABLE flag set.
+        dialog.show(getSupportFragmentManager(), "scan_fragment");
+    }
+
+    private void dismissDeviceScanningDialog() {
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("scan_fragment");
+        if (prev != null) {
+            ScannerFragment df = (ScannerFragment) prev;
+            df.dismiss();
+        }
+    }
+
+    private void getLatLong() {
+        // check permission
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            boolean isGPSEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            boolean isNetworkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            Location location = null;
+
+            if (isNetworkEnabled) {
+                location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            } else if (isGPSEnabled) {
+                location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+
+            if (location != null) {
+                double longitude = location.getLongitude();
+                double latitude = location.getLatitude();
+
+                mLatitude = String.format("%.4f", latitude);
+                mLongitude = String.format("%.4f", longitude);
+
+                mViewModel.setLatitude(mLatitude);
+                mViewModel.setLongitude(mLongitude);
+
+            }
+
+            if (mLatitude != "" && mLongitude != "") {
+                if (locationItem != null) locationItem.setIcon(greenLocationIcon);
+            } else {
+                if (locationItem != null) locationItem.setIcon(redLocationIcon);
+            }
+
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
         mRecordingThread.stopRecording();
         unregisterReceiver(mHeadphoneReceiver);
-	}
+    }
 
-	@Override
-	protected void onDestroy() {
-		mViewModel.disconnect();
-		super.onDestroy();
-	}
+    @Override
+    protected void onDestroy() {
+        mViewModel.disconnect();
+        super.onDestroy();
+    }
 
-	@Override
-	protected void onResume() {
-		super.onResume();
+    @Override
+    protected void onResume() {
+        super.onResume();
         android.content.IntentFilter headphone_filter = new
                 android.content.IntentFilter(Intent.ACTION_HEADSET_PLUG);
 
         registerReceiver(mHeadphoneReceiver, headphone_filter);
 
-        if(mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected") && headphonesActive) {
-			mRecordingThread.startRecording();
-		}
+        if (mViewModel.getMonState().getValue() && !mViewModel.getBTStateChanged().getValue().equalsIgnoreCase("disconnected") && headphonesActive) {
+            mRecordingThread.startRecording();
+        }
 
-	}
+    }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
 
-		MenuInflater menuInflater = getMenuInflater();
-		menuInflater.inflate(R.menu.main_menu, menu);
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.main_menu, menu);
 
-		connectItem = menu.findItem(R.id.status);
+        connectItem = menu.findItem(R.id.status);
 
-		greenConnectIcon = connectItem.getIcon();
-		greenConnectIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
+        greenConnectIcon = connectItem.getIcon();
+        greenConnectIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
 
-		redConnectIcon =
-				getApplicationContext().getResources().getDrawable(R.drawable.icons8_disconnected_48, getApplicationContext().getTheme());
+        redConnectIcon =
+                getApplicationContext().getResources().getDrawable(R.drawable.icons8_disconnected_48, getApplicationContext().getTheme());
 
-		redConnectIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
-
-
-
-		locationItem = menu.findItem(R.id.location);
-
-		greenLocationIcon = locationItem.getIcon();
-		greenLocationIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
-
-		redLocationIcon =
-				getApplicationContext().getResources().getDrawable(R.drawable.icons8_marker_filled_50, getApplicationContext().getTheme());
-
-		redLocationIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
+        redConnectIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
 
 
-		if(mViewModel.isConnected().getValue()) {
-			connectItem.setIcon(greenConnectIcon);
-		} else {
-			connectItem.setIcon(redConnectIcon);
-		}
+        locationItem = menu.findItem(R.id.location);
+
+        greenLocationIcon = locationItem.getIcon();
+        greenLocationIcon.mutate().setColorFilter(Color.argb(255, 0, 255, 0), PorterDuff.Mode.SRC_IN);
+
+        redLocationIcon =
+                getApplicationContext().getResources().getDrawable(R.drawable.icons8_marker_filled_50, getApplicationContext().getTheme());
+
+        redLocationIcon.mutate().setColorFilter(Color.argb(255, 255, 0, 0), PorterDuff.Mode.SRC_IN);
 
 
-		if (mLatitude != "" && mLongitude != "") {
-			locationItem.setIcon(greenLocationIcon);
-		} else {
-			locationItem.setIcon(redLocationIcon);
-		}
+        if (mViewModel.isConnected().getValue()) {
+            connectItem.setIcon(greenConnectIcon);
+        } else {
+            connectItem.setIcon(redConnectIcon);
+        }
 
-		return super.onCreateOptionsMenu(menu);
-	}
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		super.onOptionsItemSelected(item);
+        if (mLatitude != "" && mLongitude != "") {
+            locationItem.setIcon(greenLocationIcon);
+        } else {
+            locationItem.setIcon(redLocationIcon);
+        }
 
-		switch (item.getItemId()) {
-			case R.id.settings:
-				if(recSettings.getVisibility() == View.GONE) {
-					showAlertDialogChangeRecordSettings();
-				} else {
-					recSettings.setVisibility(View.GONE);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+            case R.id.settings:
+                if (recSettings.getVisibility() == View.GONE) {
+                    showAlertDialogChangeRecordSettings();
+                } else {
+                    recSettings.setVisibility(View.GONE);
                     hideKeyboard(this);
-				}
+                }
 
-				return true;
-			case  R.id.help:
-				commMonitor.setVisibility(View.GONE);
-				recSettings.setVisibility(View.GONE);
-				hideKeyboard(this);
-				mHelp.setVisibility(View.VISIBLE);
-				FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-				transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
-				transaction.addToBackStack("help_fragment");
-				transaction.commit();
+                return true;
+            case R.id.help:
+                commMonitor.setVisibility(View.GONE);
+                recSettings.setVisibility(View.GONE);
+                hideKeyboard(this);
+                mHelp.setVisibility(View.VISIBLE);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.help, new HelpFragment(), "help_fragment");
+                transaction.addToBackStack("help_fragment");
+                transaction.commit();
 
-				return true;
-			case  R.id.monitor:
-				if(commMonitor.getVisibility() == View.GONE) {
-					closeHelpFragment();
-					commMonitor.setVisibility(View.VISIBLE);
-					recSettings.setVisibility(View.GONE);
-					hideKeyboard(this);
-				} else {
-					commMonitor.setVisibility(View.GONE);
-				}
-				return true;
-			default:
-				return false;
-		}
-	}
+                return true;
+            case R.id.monitor:
+                if (commMonitor.getVisibility() == View.GONE) {
+                    closeHelpFragment();
+                    commMonitor.setVisibility(View.VISIBLE);
+                    recSettings.setVisibility(View.GONE);
+                    hideKeyboard(this);
+                } else {
+                    commMonitor.setVisibility(View.GONE);
+                }
+                return true;
+            default:
+                return false;
+        }
+    }
 
-	public static void hideKeyboard(Activity activity) {
-		if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
-			InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-			imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
-		}
-	}
-
-
-	public void showAlertDialogChangeRecordSettings() {
-		// setup the alert builder
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("CHANGE RECORD SETTINGS");
-		builder.setMessage("Do you really want to change the record settings?\n\nThe default values are 300 / 3600 / 24");
-		// add the buttons
-		builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				closeHelpFragment();
-				recSettingsEditable = true;
-				recSettings.setVisibility(View.VISIBLE);
-				commMonitor.setVisibility(View.GONE);
-			}
-		});
-		builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				recSettingsEditable = false;
-			}
-		});
-		// create and show the alert dialog
-		AlertDialog dialog = builder.create();
-		dialog.show();
-	}
-
-	public void showAlertDialogNoLocation() {
-		// setup the alert builder
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("NO LOCATION DETERMINED");
-		builder.setMessage("The location couldn't be determined\n\nPlease note the location by yourself");
-		// add the buttons
-		builder.setNegativeButton("OK", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-			}
-		});
-		// create and show the alert dialog
-		AlertDialog dialog = builder.create();
-		dialog.show();
-	}
+    public static void hideKeyboard(Activity activity) {
+        if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
+        }
+    }
 
 
-	public void onFragmentInteraction(int count) {
+    public void showAlertDialogChangeRecordSettings() {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("CHANGE RECORD SETTINGS");
+        builder.setMessage("Do you really want to change the record settings?\n\nThe default values are 300 / 3600 / 24");
+        // add the buttons
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                closeHelpFragment();
+                recSettingsEditable = true;
+                recSettings.setVisibility(View.VISIBLE);
+                commMonitor.setVisibility(View.GONE);
+            }
+        });
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                recSettingsEditable = false;
+            }
+        });
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
-	}
+    public void showAlertDialogNoLocation() {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("NO LOCATION DETERMINED");
+        builder.setMessage("The location couldn't be determined\n\nPlease note the location by yourself");
+        // add the buttons
+        builder.setNegativeButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
 
-	@Override
-	public void onBackPressed() {
-		if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-			getSupportFragmentManager().popBackStack();
-			mHelp.setVisibility(View.GONE);
-			mViewModel.disconnect();
-			//getSupportFragmentManager().findFragmentByTag("help_fragment");
+    public void onFragmentInteraction(int count) {
 
-		} else {
-			super.onBackPressed();
-			mViewModel.disconnect();
-		}
-	}
+    }
 
-	private void closeHelpFragment() {
-		if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-			getSupportFragmentManager().popBackStack();
-			mHelp.setVisibility(View.GONE);
-		}
-	}
+
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+            mHelp.setVisibility(View.GONE);
+            mViewModel.disconnect();
+            //getSupportFragmentManager().findFragmentByTag("help_fragment");
+        } else {
+            super.onBackPressed();
+            mViewModel.disconnect();
+        }
+    }
+
+    private void closeHelpFragment() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+            mHelp.setVisibility(View.GONE);
+        }
+    }
 
 
 }

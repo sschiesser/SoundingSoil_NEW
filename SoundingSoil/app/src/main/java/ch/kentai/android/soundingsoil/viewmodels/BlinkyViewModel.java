@@ -513,50 +513,73 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		//
 		Log.w("tag", "requestDeviceStatus");
 		mBlinkyManager.send("rec ?");
-		mBlinkyManager.send("mon ?");
 
+		final Handler handler_mon = new Handler();
+		handler_mon.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				mBlinkyManager.send("mon ?");
+			}
+		}, 100);
 
-		final Handler handler1 = new Handler();
-		handler1.postDelayed(new Runnable() {
+		final Handler handler_rwin = new Handler();
+		handler_rwin.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				mBlinkyManager.send("rwin ?");
+			}
+		}, 200);
+
+		final Handler handler_latlong = new Handler();
+		handler_latlong.postDelayed(new Runnable() {
+			@Override
+			public void run() {
 				mBlinkyManager.send("latlong ?");
 			}
-		}, 500);
+		}, 300);
 
-
-		final Handler handler2 = new Handler();
-		handler2.postDelayed(new Runnable() {
+		final Handler handler_filepath = new Handler();
+		handler_filepath.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				mBlinkyManager.send("filepath ?");
+			}
+		}, 400);
+
+		final Handler handler_vol = new Handler();
+		handler_vol.postDelayed(new Runnable() {
+			@Override
+			public void run() {
 				mBlinkyManager.send("vol ?");
 			}
-		}, 1000);
+		}, 500);
 
-
-		final Handler handler3 = new Handler();
-		handler3.postDelayed(new Runnable() {
+		final Handler handler_recnext = new Handler();
+		handler_recnext.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				// show monitor elements as inactive
 				mBlinkyManager.send("rec_next ?");
+			}
+		}, 600);
+
+		final Handler handler_rec_nb = new Handler();
+		handler_rec_nb.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				// show monitor elements as inactive
 				mBlinkyManager.send("rec_nb ?");
 			}
-		}, 1500);
+		}, 700);
 
-		final Handler handler4 = new Handler();
-		handler4.postDelayed(new Runnable() {
+		final Handler handler_bt = new Handler();
+		handler_bt.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				// show monitor elements as inactive
 				mBlinkyManager.send("bt ?");
 			}
-		}, 2000);
-
-
-
+		}, 800);
 	}
 
 	public void sendCurrentTime() {
