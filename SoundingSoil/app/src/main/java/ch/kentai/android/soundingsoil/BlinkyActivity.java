@@ -234,6 +234,7 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
                 DataBindingUtil.setContentView(this, R.layout.activity_blinky);
         binding.setLifecycleOwner(this);
         binding.setViewmodel(mViewModel);
+//        mRecNumberPart.setVisibility(View.GONE);
 
         ButterKnife.bind(this);
 
@@ -449,14 +450,12 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
             }
         });
 
-
         mMonButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mViewModel.toggleMon();
             }
         });
-
 
         mRecButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -483,14 +482,12 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
             }
         });
 
-
         mClearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mViewModel.clearDataSentReceived();
             }
         });
-
 
         mCloseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -516,7 +513,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
 
         }));
 
-
         mVolUpButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -525,7 +521,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
         }
         ));
 
-
         mVolDownButton.setOnTouchListener(new RepeatListener(400, 100, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -533,7 +528,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
             }
         }
         ));
-
 
         mConnButton.setOnClickListener((v -> {
             // check BT status. if connected -> disconnect
@@ -547,7 +541,6 @@ public class BlinkyActivity extends AppCompatActivity implements ScannerFragment
                 }
             }
         }));
-
 
         // observe -----------------------
         mViewModel.getBTStateChanged().observe(this, btState -> {

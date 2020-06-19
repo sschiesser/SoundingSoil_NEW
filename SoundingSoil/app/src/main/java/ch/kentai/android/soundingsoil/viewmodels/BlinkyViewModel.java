@@ -213,10 +213,10 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 
 		mDataSentReceived.setValue(new ArrayList<String>());
 		mMonState.setValue(false);
-		mDuration.setValue("300");
+		mDuration.setValue("");
 		mBTStateChanged.postValue("DISCONNECTED");
 		mConnectionState.setValue("");
-		mRecNumber.setValue(0);
+//		mRecNumber.setValue(0);
 		mRecRem.setValue("");
 		mTimeReq.setValue("");
 		mLatlongReq.setValue("");
@@ -421,9 +421,6 @@ public class BlinkyViewModel extends AndroidViewModel implements BlinkyManagerCa
 		Log.w("tag", "onBTStateChanged " + string);
 
 	}
-
-
-
 
 	@Override
 	public void onDeviceConnecting(@NonNull final BluetoothDevice device) {
